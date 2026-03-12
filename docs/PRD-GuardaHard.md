@@ -446,14 +446,14 @@ Tarefas paralelas:
 
 # Etapa 2 — Banco de Dados
 
-- [ ] Configurar SQLite
-- [ ] Configurar TypeORM
-- [ ] Criar migrations
-- [ ] Criar tabela departamentos
-- [ ] Criar tabela usuarios
-- [ ] Criar tabela hardwares
-- [ ] Criar tabela emprestimos
-- [ ] Criar seeds iniciais
+- [x] Configurar SQLite
+- [x] Configurar TypeORM
+- [x] Criar migrations
+- [x] Criar tabela departamentos
+- [x] Criar tabela usuarios
+- [x] Criar tabela hardwares
+- [x] Criar tabela emprestimos
+- [x] Criar seeds iniciais
 
 Tarefas paralelas:
 
