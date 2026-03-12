@@ -10,8 +10,8 @@ import {
   Hardware,
   Usuario,
 } from '../../src/entities';
-import { CreateEtapa2Schema1773327116742 } from '../../src/migrations/1773327116742-CreateEtapa2Schema';
-import { SeedDefaultDepartamentos1773327116743 } from '../../src/migrations/1773327116743-SeedDefaultDepartamentos';
+import { CreateEtapa2Schema1773327116742 } from '../../src/infrastructure/database/migrations/1773327116742-CreateEtapa2Schema';
+import { SeedDefaultDepartamentos1773327116743 } from '../../src/infrastructure/database/migrations/1773327116743-SeedDefaultDepartamentos';
 
 describe('seed migration', () => {
   it('inserts defaults and safely reverts only seeded rows', async () => {

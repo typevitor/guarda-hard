@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "typeorm": "typeorm-ts-node-commonjs -d src/infrastructure/database/data-source.ts",
-    "migration:generate": "pnpm run typeorm migration:generate src/migrations/CreateEtapa2Schema",
+    "migration:generate": "pnpm run typeorm migration:generate src/infrastructure/database/migrations/CreateEtapa2Schema",
     "migration:run": "pnpm run typeorm migration:run",
     "migration:revert": "pnpm run typeorm migration:revert",
     "migration:show": "pnpm run typeorm migration:show"

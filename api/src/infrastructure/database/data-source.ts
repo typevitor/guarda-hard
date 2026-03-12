@@ -5,10 +5,7 @@ import { Departamento, Usuario, Hardware, Emprestimo } from '../../entities';
 
 const apiRoot = path.resolve(__dirname, '../../..');
 const databaseFilePath = path.resolve(apiRoot, 'data/guarda-hard.sqlite');
-const migrationsGlobPath = path.resolve(
-  __dirname,
-  '../../migrations/*{.ts,.js}',
-);
+const migrationsGlobPath = path.resolve(__dirname, './migrations/*{.ts,.js}');
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',

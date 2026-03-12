@@ -10,7 +10,7 @@ import {
   Hardware,
   Usuario,
 } from '../../src/entities';
-import { CreateEtapa2Schema1773327116742 } from '../../src/migrations/1773327116742-CreateEtapa2Schema';
+import { CreateEtapa2Schema1773327116742 } from '../../src/infrastructure/database/migrations/1773327116742-CreateEtapa2Schema';
 
 type TableRow = { name: string };
 type ColumnRow = { name: string };
