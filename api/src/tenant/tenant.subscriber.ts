@@ -51,5 +51,11 @@ export class TenantSubscriber
     if (persistedEmpresaId !== currentEmpresaId) {
       throw new CrossTenantAccessError();
     }
+
+    const incomingEmpresaId = event.entity?.empresa_id;
+
+    if (incomingEmpresaId != null && incomingEmpresaId !== currentEmpresaId) {
+      throw new CrossTenantAccessError();
+    }
   }
 }

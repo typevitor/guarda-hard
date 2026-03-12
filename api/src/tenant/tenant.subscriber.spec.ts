@@ -33,4 +33,15 @@ describe('TenantSubscriber', () => {
       expect(() => subscriber.beforeUpdate(event)).toThrow(CrossTenantAccessError);
     });
   });
+
+  it('blocks updates when incoming entity attempts tenant reassignment', async () => {
+    const event = {
+      databaseEntity: { empresa_id: 'empresa-1' },
+      entity: { empresa_id: 'empresa-2' },
+    } as unknown as UpdateEvent<Record<string, unknown>>;
+
+    await tenantContext.run('empresa-1', async () => {
+      expect(() => subscriber.beforeUpdate(event)).toThrow(CrossTenantAccessError);
+    });
+  });
 });
