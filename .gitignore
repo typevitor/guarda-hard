@@ -15,3 +15,4 @@ api/data/*.sqlite
 !.env.example
 .vscode/
 .DS_Store
+.worktrees/
