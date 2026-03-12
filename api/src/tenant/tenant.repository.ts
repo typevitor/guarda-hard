@@ -11,14 +11,21 @@ export class TenantRepository<T extends TenantScopedEntity> {
 
   find(options: FindManyOptions<T> = {}): Promise<T[]> {
     const empresaId = this.tenantContext.requireEmpresaId();
-    const where = options.where as FindOptionsWhere<T>;
+    const where = options.where;
+
+    const tenantWhere = Array.isArray(where)
+      ? where.map((clause) => ({
+          ...clause,
+          empresa_id: empresaId,
+        }))
+      : {
+          ...(where ?? {}),
+          empresa_id: empresaId,
+        };
 
     return this.repository.find({
       ...options,
-      where: {
-        ...(where ?? {}),
-        empresa_id: empresaId,
-      } as FindOptionsWhere<T>,
+      where: tenantWhere as FindOptionsWhere<T> | FindOptionsWhere<T>[],
     });
   }
 
@@ -27,10 +34,28 @@ export class TenantRepository<T extends TenantScopedEntity> {
     patch: Parameters<Repository<T>['update']>[1],
   ): Promise<void> {
     const empresaId = this.tenantContext.requireEmpresaId();
-    const result = await this.repository.update({ id, empresa_id: empresaId } as FindOptionsWhere<T>, patch);
+    const safePatch = this.removeTenantMutation(patch);
+    const result = await this.repository.update(
+      { id, empresa_id: empresaId } as FindOptionsWhere<T>,
+      safePatch,
+    );
 
     if (!result.affected) {
       throw new CrossTenantAccessError();
     }
+  }
+
+  private removeTenantMutation(
+    patch: Parameters<Repository<T>['update']>[1],
+  ): Parameters<Repository<T>['update']>[1] {
+    if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+      return patch;
+    }
+
+    const { empresa_id: _empresaId, ...rest } = patch as {
+      empresa_id?: unknown;
+    } & Record<string, unknown>;
+
+    return rest as Parameters<Repository<T>['update']>[1];
   }
 }
