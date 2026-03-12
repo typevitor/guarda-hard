@@ -6,6 +6,11 @@ import {
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
+import {
+  DescricaoProblemaObrigatoriaError,
+  HardwareDefeituosoError,
+  HardwareNaoDisponivelError,
+} from './domain.errors';
 
 @Entity('hardwares')
 export class Hardware {
@@ -44,4 +49,38 @@ export class Hardware {
 
   @UpdateDateColumn({ type: 'datetime' })
   updated_at!: Date;
+
+  emprestar(): void {
+    if (!this.funcionando) {
+      throw new HardwareDefeituosoError();
+    }
+
+    if (!this.livre) {
+      throw new HardwareNaoDisponivelError();
+    }
+
+    this.livre = false;
+  }
+
+  devolver(): void {
+    this.livre = true;
+  }
+
+  marcarDefeito(descricaoProblema: string): void {
+    const descricao = descricaoProblema.trim();
+
+    if (!descricao) {
+      throw new DescricaoProblemaObrigatoriaError();
+    }
+
+    this.funcionando = false;
+    this.livre = false;
+    this.descricao_problema = descricao;
+  }
+
+  consertar(): void {
+    this.funcionando = true;
+    this.livre = true;
+    this.descricao_problema = null;
+  }
 }

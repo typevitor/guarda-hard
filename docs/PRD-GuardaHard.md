@@ -474,31 +474,31 @@ Tarefas paralelas:
 
 # Etapa 4 — Domínio
 
-- [ ] Criar entidade Hardware
-- [ ] Criar entidade Usuario
-- [ ] Criar entidade Departamento
-- [ ] Criar entidade Emprestimo
+- [x] Criar entidade Hardware
+- [x] Criar entidade Usuario
+- [x] Criar entidade Departamento
+- [x] Criar entidade Emprestimo
 
 ---
 
 ## Regras de domínio
 
-- [ ] Implementar método emprestar
-- [ ] Implementar método devolver
-- [ ] Implementar método marcar defeito
-- [ ] Implementar método consertar
+- [x] Implementar método emprestar
+- [x] Implementar método devolver
+- [x] Implementar método marcar defeito
+- [x] Implementar método consertar
 
 ---
 
 # Etapa 5 — Testes de Domínio
 
-- [ ] Testar empréstimo válido
-- [ ] Testar empréstimo inválido
-- [ ] Testar devolução
-- [ ] Testar defeito
-- [ ] Testar conserto
-- [ ] Testar concorrência
-- [ ] Testar isolamento multi tenant
+- [x] Testar empréstimo válido
+- [x] Testar empréstimo inválido
+- [x] Testar devolução
+- [x] Testar defeito
+- [x] Testar conserto
+- [x] Testar concorrência
+- [x] Testar isolamento multi tenant
 
 ---
 

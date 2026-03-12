@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Usuario } from './usuario.entity';
 import { Hardware } from './hardware.entity';
+import { EmprestimoJaDevolvidoError } from './domain.errors';
 
 @Entity('emprestimos')
 export class Emprestimo {
@@ -43,4 +44,31 @@ export class Emprestimo {
   @ManyToOne(() => Hardware)
   @JoinColumn({ name: 'hardware_id' })
   hardware!: Hardware;
+
+  static emprestar(input: {
+    empresa_id: string;
+    usuario_id: string;
+    hardware_id: string;
+    hardware: Hardware;
+    data_retirada?: Date;
+  }): Emprestimo {
+    input.hardware.emprestar();
+
+    return Object.assign(new Emprestimo(), {
+      empresa_id: input.empresa_id,
+      usuario_id: input.usuario_id,
+      hardware_id: input.hardware_id,
+      data_retirada: input.data_retirada ?? new Date(),
+      data_devolucao: null,
+    });
+  }
+
+  devolver(hardware: Hardware, dataDevolucao: Date = new Date()): void {
+    if (this.data_devolucao) {
+      throw new EmprestimoJaDevolvidoError();
+    }
+
+    this.data_devolucao = dataDevolucao;
+    hardware.devolver();
+  }
 }

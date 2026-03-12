@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreateEtapa2Schema1773327116742 implements MigrationInterface {
   name = 'CreateEtapa2Schema1773327116742';
