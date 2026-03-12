@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.next/
+out/
+.turbo/
+*.log
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+!.env.example
+.vscode/
+.DS_Store
