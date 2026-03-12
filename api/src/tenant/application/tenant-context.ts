@@ -3,8 +3,8 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import {
   InvalidTenantPayloadError,
   MissingTenantContextError,
-} from './tenant.errors';
-import type { JwtTenantPayload } from './tenant.types';
+} from '../infrastructure/tenant.errors';
+import type { JwtTenantPayload } from '../infrastructure/tenant.types';
 
 type TenantStore = {
   empresaId: string;

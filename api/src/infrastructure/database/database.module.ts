@@ -3,8 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AppDataSource } from './data-source';
 import { TenantModule } from '../../tenant/tenant.module';
-import { TenantContext } from '../../tenant/tenant-context';
-import { TenantSubscriber } from '../../tenant/tenant.subscriber';
+import { TenantContext } from '../../tenant/application/tenant-context';
+import { TenantSubscriber } from '../../tenant/infrastructure/tenant.subscriber';
 
 @Module({
   imports: [TypeOrmModule.forRoot(AppDataSource.options), TenantModule],

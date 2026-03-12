@@ -1,6 +1,6 @@
 import type { InsertEvent, UpdateEvent } from 'typeorm';
 import { CrossTenantAccessError } from './tenant.errors';
-import { TenantContext } from './tenant-context';
+import { TenantContext } from '../application/tenant-context';
 import { TenantSubscriber } from './tenant.subscriber';
 
 describe('TenantSubscriber', () => {

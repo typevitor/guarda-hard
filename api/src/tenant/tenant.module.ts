@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TenantContext } from './tenant-context';
+import { TenantContext } from './application/tenant-context';
 
 @Module({
   providers: [TenantContext],

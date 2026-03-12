@@ -1,4 +1,4 @@
-import { InvalidTenantPayloadError } from './tenant.errors';
+import { InvalidTenantPayloadError } from '../infrastructure/tenant.errors';
 import { TenantContext } from './tenant-context';
 
 describe('TenantContext', () => {

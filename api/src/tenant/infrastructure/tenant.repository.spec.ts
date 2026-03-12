@@ -1,6 +1,6 @@
 import type { FindManyOptions, Repository, UpdateResult } from 'typeorm';
 import { CrossTenantAccessError } from './tenant.errors';
-import { TenantContext } from './tenant-context';
+import { TenantContext } from '../application/tenant-context';
 import type { TenantScopedEntity } from './tenant.types';
 import { TenantRepository } from './tenant.repository';
 

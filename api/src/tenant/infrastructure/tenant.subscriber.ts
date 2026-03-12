@@ -5,7 +5,7 @@ import type {
   UpdateEvent,
 } from 'typeorm';
 import { CrossTenantAccessError } from './tenant.errors';
-import { TenantContext } from './tenant-context';
+import { TenantContext } from '../application/tenant-context';
 
 @EventSubscriber()
 export class TenantSubscriber implements EntitySubscriberInterface<

@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
 import { AppModule } from '../app.module';
-import { TenantContext } from './tenant-context';
+import { TenantContext } from './application/tenant-context';
 
 vi.mock('../infrastructure/database/database.module', () => ({
   DatabaseModule: class DatabaseModule {},

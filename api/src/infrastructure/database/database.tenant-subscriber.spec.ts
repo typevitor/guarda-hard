@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { vi } from 'vitest';
 import { Departamento, Emprestimo, Hardware, Usuario } from '../../entities';
 import { AppModule } from '../../app.module';
-import { TenantSubscriber } from '../../tenant/tenant.subscriber';
+import { TenantSubscriber } from '../../tenant/infrastructure/tenant.subscriber';
 
 vi.mock('./data-source', async () => {
   const { DataSource: TypeOrmDataSource } = await import('typeorm');
