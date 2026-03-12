@@ -464,11 +464,11 @@ Tarefas paralelas:
 
 # Etapa 3 — Infraestrutura Multi-Tenant
 
-- [ ] Criar TenantContext
-- [ ] Implementar TenantSubscriber
-- [ ] Implementar TenantRepository
-- [ ] Testar inserção automática de empresa_id
-- [ ] Testar bloqueio cross tenant
+- [x] Criar TenantContext
+- [x] Implementar TenantSubscriber
+- [x] Implementar TenantRepository
+- [x] Testar inserção automática de empresa_id
+- [x] Testar bloqueio cross tenant
 
 ---
 
