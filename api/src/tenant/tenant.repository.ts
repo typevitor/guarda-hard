@@ -52,9 +52,12 @@ export class TenantRepository<T extends TenantScopedEntity> {
       return patch;
     }
 
-    const { empresa_id: _empresaId, ...rest } = patch as {
+    const unsafePatch = patch as {
       empresa_id?: unknown;
     } & Record<string, unknown>;
+    const rest = { ...unsafePatch };
+
+    delete rest.empresa_id;
 
     return rest as Parameters<Repository<T>['update']>[1];
   }

@@ -71,7 +71,9 @@ describe('TenantRepository', () => {
   });
 
   it('updateById() throws CrossTenantAccessError when update affected rows = 0', async () => {
-    vi.mocked(repository.update).mockResolvedValue({ affected: 0 } as UpdateResult);
+    vi.mocked(repository.update).mockResolvedValue({
+      affected: 0,
+    } as UpdateResult);
 
     await tenantContext.run('empresa-1', async () => {
       await expect(
@@ -93,7 +95,9 @@ describe('TenantRepository', () => {
   });
 
   it('updateById() does not throw when update affected rows > 0', async () => {
-    vi.mocked(repository.update).mockResolvedValue({ affected: 1 } as UpdateResult);
+    vi.mocked(repository.update).mockResolvedValue({
+      affected: 1,
+    } as UpdateResult);
 
     await tenantContext.run('empresa-1', async () => {
       await expect(
@@ -105,7 +109,9 @@ describe('TenantRepository', () => {
   });
 
   it('updateById() ignores empresa_id mutation attempt in patch', async () => {
-    vi.mocked(repository.update).mockResolvedValue({ affected: 1 } as UpdateResult);
+    vi.mocked(repository.update).mockResolvedValue({
+      affected: 1,
+    } as UpdateResult);
 
     await tenantContext.run('empresa-1', async () => {
       await tenantRepository.updateById('entity-1', {

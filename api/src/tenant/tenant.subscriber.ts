@@ -8,9 +8,9 @@ import { CrossTenantAccessError } from './tenant.errors';
 import { TenantContext } from './tenant-context';
 
 @EventSubscriber()
-export class TenantSubscriber
-  implements EntitySubscriberInterface<Record<string, unknown>>
-{
+export class TenantSubscriber implements EntitySubscriberInterface<
+  Record<string, unknown>
+> {
   constructor(private readonly tenantContext: TenantContext) {}
 
   beforeInsert(event: InsertEvent<Record<string, unknown>>): void {
@@ -52,7 +52,8 @@ export class TenantSubscriber
       throw new CrossTenantAccessError();
     }
 
-    const incomingEmpresaId = event.entity?.empresa_id;
+    const incomingEntity = event.entity as Record<string, unknown> | undefined;
+    const incomingEmpresaId = incomingEntity?.empresa_id;
 
     if (incomingEmpresaId != null && incomingEmpresaId !== currentEmpresaId) {
       throw new CrossTenantAccessError();

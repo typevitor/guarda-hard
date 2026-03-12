@@ -12,36 +12,40 @@ describe('TenantSubscriber', () => {
     subscriber = new TenantSubscriber(tenantContext);
   });
 
-  it('injects empresa_id on insert when field is missing', async () => {
+  it('injects empresa_id on insert when field is missing', () => {
     const event = {
       entity: {},
     } as InsertEvent<Record<string, unknown>>;
 
-    await tenantContext.run('empresa-1', async () => {
+    tenantContext.run('empresa-1', () => {
       subscriber.beforeInsert(event);
     });
 
     expect(event.entity?.empresa_id).toBe('empresa-1');
   });
 
-  it('blocks updates when database row belongs to another tenant', async () => {
+  it('blocks updates when database row belongs to another tenant', () => {
     const event = {
       databaseEntity: { empresa_id: 'empresa-2' },
     } as unknown as UpdateEvent<Record<string, unknown>>;
 
-    await tenantContext.run('empresa-1', async () => {
-      expect(() => subscriber.beforeUpdate(event)).toThrow(CrossTenantAccessError);
+    tenantContext.run('empresa-1', () => {
+      expect(() => subscriber.beforeUpdate(event)).toThrow(
+        CrossTenantAccessError,
+      );
     });
   });
 
-  it('blocks updates when incoming entity attempts tenant reassignment', async () => {
+  it('blocks updates when incoming entity attempts tenant reassignment', () => {
     const event = {
       databaseEntity: { empresa_id: 'empresa-1' },
       entity: { empresa_id: 'empresa-2' },
     } as unknown as UpdateEvent<Record<string, unknown>>;
 
-    await tenantContext.run('empresa-1', async () => {
-      expect(() => subscriber.beforeUpdate(event)).toThrow(CrossTenantAccessError);
+    tenantContext.run('empresa-1', () => {
+      expect(() => subscriber.beforeUpdate(event)).toThrow(
+        CrossTenantAccessError,
+      );
     });
   });
 });
