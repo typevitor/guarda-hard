@@ -18,18 +18,22 @@ With Etapa 4 (domain methods) complete and Etapa 5 (domain tests) next, this is 
 
 ## Decisions
 
-| Decision               | Choice                                                             | Rationale                                                    |
-| ---------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------ |
-| Refactor scope         | Big-bang (all at once)                                             | Avoids half-migrated state; codebase is small enough         |
-| Entity separation      | Full separation with mappers                                       | Maximum isolation; domain has zero framework imports         |
-| Repository abstraction | Interface per aggregate root                                       | Expressive domain contracts; each aggregate has its own port |
-| Aggregate boundaries   | Hardware, Emprestimo, Departamento, Usuario as separate aggregates | Cross-aggregate coordination in use cases, not in entities   |
-| Shared kernel location | `api/src/shared/`                                                  | Tenant infra and base domain types accessible to all modules |
-| Folder structure       | Feature-module layered (Approach A)                                | Aligns with architecture.md; each module is self-contained   |
+| Decision               | Choice                                                                                                                     | Rationale                                                                                           |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Refactor scope         | Big-bang (all at once)                                                                                                     | Avoids half-migrated state; codebase is small enough                                                |
+| Entity separation      | Full separation with mappers                                                                                               | Maximum isolation; domain has zero framework imports                                                |
+| Repository abstraction | Interface per aggregate root                                                                                               | Expressive domain contracts; each aggregate has its own port                                        |
+| Aggregate boundaries   | Hardware, Emprestimo, Departamento, Usuario as separate aggregates                                                         | Cross-aggregate coordination in use cases, not in entities                                          |
+| Shared kernel location | `api/src/shared/` for cross-cutting domain; `api/src/tenant/` as standalone module; `api/src/infrastructure/` for database | Aligns with architecture.md layout                                                                  |
+| Folder structure       | Feature-module layered (Approach A)                                                                                        | Aligns with architecture.md; each module is self-contained                                          |
+| ID generation          | Domain factories generate UUIDs via `crypto.randomUUID()`                                                                  | ORM entities use `@PrimaryColumn` (not `@PrimaryGeneratedColumn`) since IDs originate in the domain |
+| Base entity naming     | `DomainEntity` (not `BaseEntity`)                                                                                          | Avoids collision with TypeORM's `BaseEntity` export                                                 |
 
 ---
 
 ## Target Folder Structure
+
+Follows the layout defined in `docs/architecture.md`:
 
 ```
 api/src/
@@ -37,22 +41,29 @@ api/src/
 ├── app.module.ts
 │
 ├── shared/
-│   ├── shared.module.ts
+│   ├── shared.module.ts                       # Exports cross-cutting providers
 │   ├── domain/
-│   │   ├── entity.base.ts
-│   │   ├── domain-error.base.ts
-│   │   └── repository.interface.ts
+│   │   ├── domain-entity.base.ts              # Abstract base: id, empresaId, createdAt, updatedAt
+│   │   └── domain-error.base.ts               # Abstract DomainError base class
+│   └── testing/                               # Shared test helpers (future)
+│
+├── tenant/                                    # Standalone tenant module (matches architecture.md)
+│   ├── tenant.module.ts
+│   ├── application/
+│   │   └── tenant-context.ts
 │   └── infrastructure/
-│       ├── database/
-│       │   ├── database.module.ts
-│       │   └── data-source.ts
-│       └── tenant/
-│           ├── tenant.module.ts
-│           ├── tenant-context.ts
-│           ├── tenant.subscriber.ts
-│           ├── tenant.repository.ts
-│           ├── tenant.types.ts
-│           └── tenant.errors.ts
+│       ├── tenant.subscriber.ts
+│       ├── tenant.repository.ts
+│       ├── tenant.types.ts
+│       └── tenant.errors.ts
+│
+├── infrastructure/                            # Top-level infrastructure (matches architecture.md)
+│   └── database/
+│       ├── database.module.ts
+│       ├── data-source.ts
+│       └── migrations/
+│           ├── 1773327116742-CreateEtapa2Schema.ts
+│           └── 1773327116743-SeedDefaultDepartamentos.ts
 │
 ├── modules/
 │   ├── hardwares/
@@ -64,15 +75,15 @@ api/src/
 │   │   │   │   └── hardware.repository.interface.ts
 │   │   │   └── errors/
 │   │   │       ├── hardware-nao-disponivel.error.ts
-│   │   │       └── hardware-defeituoso.error.ts
+│   │   │       ├── hardware-defeituoso.error.ts
+│   │   │       └── descricao-problema-obrigatoria.error.ts
 │   │   ├── application/
 │   │   │   ├── use-cases/
-│   │   │   ├── dto/
-│   │   │   └── mappers/
-│   │   │       └── hardware.mapper.ts
+│   │   │   └── dto/
 │   │   ├── infrastructure/
 │   │   │   └── persistence/
 │   │   │       ├── hardware.orm-entity.ts
+│   │   │       ├── hardware.mapper.ts
 │   │   │       └── hardware.typeorm-repository.ts
 │   │   └── presentation/
 │   │       └── http/
@@ -88,12 +99,11 @@ api/src/
 │   │   │       └── emprestimo-ja-devolvido.error.ts
 │   │   ├── application/
 │   │   │   ├── use-cases/
-│   │   │   ├── dto/
-│   │   │   └── mappers/
-│   │   │       └── emprestimo.mapper.ts
+│   │   │   └── dto/
 │   │   ├── infrastructure/
 │   │   │   └── persistence/
 │   │   │       ├── emprestimo.orm-entity.ts
+│   │   │       ├── emprestimo.mapper.ts
 │   │   │       └── emprestimo.typeorm-repository.ts
 │   │   └── presentation/
 │   │       └── http/
@@ -106,11 +116,12 @@ api/src/
 │   │   │   └── repositories/
 │   │   │       └── departamento.repository.interface.ts
 │   │   ├── application/
-│   │   │   └── mappers/
-│   │   │       └── departamento.mapper.ts
+│   │   │   ├── use-cases/
+│   │   │   └── dto/
 │   │   ├── infrastructure/
 │   │   │   └── persistence/
 │   │   │       ├── departamento.orm-entity.ts
+│   │   │       ├── departamento.mapper.ts
 │   │   │       └── departamento.typeorm-repository.ts
 │   │   └── presentation/
 │   │       └── http/
@@ -123,19 +134,24 @@ api/src/
 │       │   └── repositories/
 │       │       └── usuario.repository.interface.ts
 │       ├── application/
-│       │   └── mappers/
-│       │       └── usuario.mapper.ts
+│       │   ├── use-cases/
+│       │   └── dto/
 │       ├── infrastructure/
 │       │   └── persistence/
 │       │       ├── usuario.orm-entity.ts
+│       │       ├── usuario.mapper.ts
 │       │       └── usuario.typeorm-repository.ts
 │       └── presentation/
 │           └── http/
-│
-└── migrations/
-    ├── 1773327116742-CreateEtapa2Schema.ts
-    └── 1773327116743-SeedDefaultDepartamentos.ts
 ```
+
+### Differences from original spec vs. architecture.md (resolved)
+
+| Item                  | Original spec                                               | Architecture.md                                                | Resolution                                                                                                                                                                                                                                                                                                           |
+| --------------------- | ----------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tenant module         | `shared/infrastructure/tenant/`                             | Top-level `tenant/` with `application/` + `infrastructure/`    | Follow architecture.md: `api/src/tenant/`                                                                                                                                                                                                                                                                            |
+| Database + migrations | `shared/infrastructure/database/` + top-level `migrations/` | Top-level `infrastructure/database/` with `migrations/` inside | Follow architecture.md: `api/src/infrastructure/database/`                                                                                                                                                                                                                                                           |
+| Mapper placement      | `application/mappers/`                                      | `application/mappers/`                                         | Deviate: `infrastructure/persistence/`. Mappers depend on ORM entities (infrastructure); placing them in `application/` would make application depend on infrastructure, violating the dependency rule. The mapper's only consumer is the repository implementation, which is also in `infrastructure/persistence/`. |
 
 ### Naming Conventions
 
@@ -157,8 +173,8 @@ api/src/
 ### Base Entity
 
 ```typescript
-// shared/domain/entity.base.ts
-export abstract class BaseEntity {
+// shared/domain/domain-entity.base.ts
+export abstract class DomainEntity {
   readonly id: string;
   readonly empresaId: string;
   readonly createdAt: Date;
@@ -177,6 +193,8 @@ export abstract class BaseEntity {
   }
 }
 ```
+
+Named `DomainEntity` to avoid collision with TypeORM's exported `BaseEntity` class.
 
 Domain uses camelCase (`empresaId`, `createdAt`). ORM entities use snake_case (`empresa_id`, `created_at`) matching the database. Mappers bridge the two.
 
@@ -198,10 +216,11 @@ All domain errors extend this base class instead of `Error` directly.
 
 ```typescript
 // modules/hardwares/domain/entities/hardware.entity.ts
-import { BaseEntity } from '@/shared/domain/entity.base';
+import { DomainEntity } from '../../../../shared/domain/domain-entity.base';
 import { HardwareNaoDisponivelError } from '../errors/hardware-nao-disponivel.error';
 import { HardwareDefeituosoError } from '../errors/hardware-defeituoso.error';
 import { DescricaoProblemaObrigatoriaError } from '../errors/descricao-problema-obrigatoria.error';
+import { randomUUID } from 'node:crypto';
 
 export interface HardwareProps {
   id: string;
@@ -218,7 +237,15 @@ export interface HardwareProps {
   updatedAt?: Date;
 }
 
-export class Hardware extends BaseEntity {
+export interface CreateHardwareProps {
+  empresaId: string;
+  descricao: string;
+  marca: string;
+  modelo: string;
+  codigoPatrimonio: string;
+}
+
+export class Hardware extends DomainEntity {
   private _descricao: string;
   private _marca: string;
   private _modelo: string;
@@ -228,6 +255,7 @@ export class Hardware extends BaseEntity {
   private _livre: boolean;
   readonly version: number;
 
+  // Used by mapper to reconstitute from DB
   constructor(props: HardwareProps) {
     super(props);
     this._descricao = props.descricao;
@@ -238,6 +266,22 @@ export class Hardware extends BaseEntity {
     this._descricaoProblema = props.descricaoProblema;
     this._livre = props.livre;
     this.version = props.version;
+  }
+
+  // Factory for creating new hardware — generates UUID
+  static create(props: CreateHardwareProps): Hardware {
+    return new Hardware({
+      id: randomUUID(),
+      empresaId: props.empresaId,
+      descricao: props.descricao,
+      marca: props.marca,
+      modelo: props.modelo,
+      codigoPatrimonio: props.codigoPatrimonio,
+      funcionando: true,
+      descricaoProblema: null,
+      livre: true,
+      version: 0,
+    });
   }
 
   // Domain methods — logic preserved from current entity
@@ -251,8 +295,9 @@ export class Hardware extends BaseEntity {
     this._livre = true;
   }
 
-  marcarDefeito(descricao: string): void {
-    if (!descricao?.trim()) throw new DescricaoProblemaObrigatoriaError();
+  marcarDefeito(descricaoProblema: string): void {
+    const descricao = descricaoProblema.trim();
+    if (!descricao) throw new DescricaoProblemaObrigatoriaError();
     this._funcionando = false;
     this._livre = false;
     this._descricaoProblema = descricao;
@@ -289,14 +334,21 @@ export class Hardware extends BaseEntity {
 }
 ```
 
-Zero framework imports. Private fields enforce encapsulation — state changes only through domain methods.
+**Key design points:**
+
+- Zero framework imports. Private fields enforce encapsulation — state changes only through domain methods.
+- `static create()` generates UUID via `crypto.randomUUID()`. The regular constructor is for reconstitution from persistence (used by mapper).
+- `marcarDefeito()` preserves the exact current behavior: calls `.trim()` directly on the parameter (throws `TypeError` on `null`/`undefined`, throws `DescricaoProblemaObrigatoriaError` on empty string). No optional chaining.
+- `version` is readonly from the domain's perspective — optimistic locking is a persistence concern, but the domain carries the version so the mapper can pass it back.
+- Imports use relative paths (no path aliases — see Path Aliases section below).
 
 ### Emprestimo Domain Entity
 
 ```typescript
 // modules/emprestimos/domain/entities/emprestimo.entity.ts
-import { BaseEntity } from '@/shared/domain/entity.base';
+import { DomainEntity } from '../../../../shared/domain/domain-entity.base';
 import { EmprestimoJaDevolvidoError } from '../errors/emprestimo-ja-devolvido.error';
+import { randomUUID } from 'node:crypto';
 
 export interface EmprestimoProps {
   id: string;
@@ -309,7 +361,7 @@ export interface EmprestimoProps {
   updatedAt?: Date;
 }
 
-export class Emprestimo extends BaseEntity {
+export class Emprestimo extends DomainEntity {
   readonly usuarioId: string;
   readonly hardwareId: string;
   private _dataRetirada: Date;
@@ -324,14 +376,17 @@ export class Emprestimo extends BaseEntity {
   }
 
   static emprestar(props: {
-    id: string;
     empresaId: string;
     usuarioId: string;
     hardwareId: string;
+    dataRetirada?: Date;
   }): Emprestimo {
     return new Emprestimo({
-      ...props,
-      dataRetirada: new Date(),
+      id: randomUUID(),
+      empresaId: props.empresaId,
+      usuarioId: props.usuarioId,
+      hardwareId: props.hardwareId,
+      dataRetirada: props.dataRetirada ?? new Date(),
       dataDevolucao: null,
     });
   }
@@ -353,17 +408,116 @@ export class Emprestimo extends BaseEntity {
 }
 ```
 
-Cross-aggregate references are by ID (`usuarioId`, `hardwareId`). The `Emprestimo.emprestar()` factory no longer receives a `Hardware` instance. Coordinating `hardware.emprestar()` with `Emprestimo.emprestar()` moves to a use case (Etapa 6).
+**Behavioral change from current code:** The current `Emprestimo.emprestar()` receives a `Hardware` instance and calls `hardware.emprestar()` as cross-aggregate coordination. The current `devolver()` receives a `Hardware` and calls `hardware.devolver()`.
 
-### Departamento and Usuario Domain Entities
+In the new design, `Emprestimo` only references aggregates by ID (`usuarioId`, `hardwareId`). Cross-aggregate coordination moves to use cases in Etapa 6. **Existing domain tests that test the coordinated behavior will need to be rewritten** to test each aggregate independently, with a use-case test covering the coordination.
 
-Thin entities extending `BaseEntity` with properties only. No domain behavior currently — if behavior emerges later, it goes in these classes.
+### Departamento Domain Entity
+
+```typescript
+// modules/departamentos/domain/entities/departamento.entity.ts
+import { DomainEntity } from '../../../../shared/domain/domain-entity.base';
+import { randomUUID } from 'node:crypto';
+
+export interface DepartamentoProps {
+  id: string;
+  empresaId: string;
+  nome: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export class Departamento extends DomainEntity {
+  private _nome: string;
+
+  constructor(props: DepartamentoProps) {
+    super(props);
+    this._nome = props.nome;
+  }
+
+  static create(props: { empresaId: string; nome: string }): Departamento {
+    return new Departamento({
+      id: randomUUID(),
+      empresaId: props.empresaId,
+      nome: props.nome,
+    });
+  }
+
+  get nome(): string {
+    return this._nome;
+  }
+}
+```
+
+### Usuario Domain Entity
+
+```typescript
+// modules/usuarios/domain/entities/usuario.entity.ts
+import { DomainEntity } from '../../../../shared/domain/domain-entity.base';
+import { randomUUID } from 'node:crypto';
+
+export interface UsuarioProps {
+  id: string;
+  empresaId: string;
+  departamentoId: string;
+  nome: string;
+  email: string;
+  ativo: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export class Usuario extends DomainEntity {
+  readonly departamentoId: string; // Cross-aggregate reference by ID
+  private _nome: string;
+  private _email: string;
+  private _ativo: boolean;
+
+  constructor(props: UsuarioProps) {
+    super(props);
+    this.departamentoId = props.departamentoId;
+    this._nome = props.nome;
+    this._email = props.email;
+    this._ativo = props.ativo;
+  }
+
+  static create(props: {
+    empresaId: string;
+    departamentoId: string;
+    nome: string;
+    email: string;
+  }): Usuario {
+    return new Usuario({
+      id: randomUUID(),
+      empresaId: props.empresaId,
+      departamentoId: props.departamentoId,
+      nome: props.nome,
+      email: props.email,
+      ativo: true,
+    });
+  }
+
+  get nome(): string {
+    return this._nome;
+  }
+  get email(): string {
+    return this._email;
+  }
+  get ativo(): boolean {
+    return this._ativo;
+  }
+}
+```
+
+Note: `departamentoId` is a cross-aggregate reference by ID. The ORM entity keeps the `@ManyToOne` relation for query JOINs, but the domain entity only knows the ID.
 
 ---
 
 ## ORM Entities
 
-ORM entities are pure data structures with TypeORM decorators. No domain methods.
+ORM entities are pure data structures with TypeORM decorators. No domain methods. They use `@PrimaryColumn` (not `@PrimaryGeneratedColumn`) because IDs are generated in the domain layer.
+
+### HardwareOrmEntity
 
 ```typescript
 // modules/hardwares/infrastructure/persistence/hardware.orm-entity.ts
@@ -381,53 +535,123 @@ export class HardwareOrmEntity {
   @PrimaryColumn('varchar', { length: 36 })
   id: string;
 
-  @Column('varchar', { name: 'empresa_id', length: 36 })
+  @Column({ type: 'varchar', name: 'empresa_id', length: 36 })
   empresa_id: string;
 
-  @Column('varchar', { length: 200 })
+  @Column({ type: 'varchar', length: 200 })
   descricao: string;
 
-  @Column('varchar', { length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   marca: string;
 
-  @Column('varchar', { length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   modelo: string;
 
-  @Column('varchar', { name: 'codigo_patrimonio', length: 50 })
+  @Column({ type: 'varchar', name: 'codigo_patrimonio', length: 50 })
   codigo_patrimonio: string;
 
-  @Column('boolean', { default: true })
+  @Column({ type: 'boolean', default: true })
   funcionando: boolean;
 
-  @Column('text', { name: 'descricao_problema', nullable: true })
+  @Column({ type: 'text', name: 'descricao_problema', nullable: true })
   descricao_problema: string | null;
 
-  @Column('boolean', { default: true })
+  @Column({ type: 'boolean', default: true })
   livre: boolean;
 
   @VersionColumn()
   version: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   created_at: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
   updated_at: Date;
 }
 ```
 
-ORM entities use snake_case field names matching the database schema. Relations (`@ManyToOne`) are preserved for query-time JOINs.
+### EmprestimoOrmEntity
+
+```typescript
+// modules/emprestimos/infrastructure/persistence/emprestimo.orm-entity.ts
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { UsuarioOrmEntity } from '../../../usuarios/infrastructure/persistence/usuario.orm-entity';
+import { HardwareOrmEntity } from '../../../hardwares/infrastructure/persistence/hardware.orm-entity';
+
+@Entity('emprestimos')
+export class EmprestimoOrmEntity {
+  @PrimaryColumn('varchar', { length: 36 })
+  id: string;
+
+  @Column({ type: 'varchar', name: 'empresa_id', length: 36 })
+  empresa_id: string;
+
+  @Column({ type: 'varchar', name: 'usuario_id', length: 36 })
+  usuario_id: string;
+
+  @Column({ type: 'varchar', name: 'hardware_id', length: 36 })
+  hardware_id: string;
+
+  @Column({ type: 'datetime', name: 'data_retirada' })
+  data_retirada: Date;
+
+  @Column({ type: 'datetime', name: 'data_devolucao', nullable: true })
+  data_devolucao: Date | null;
+
+  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
+  updated_at: Date;
+
+  @ManyToOne(() => UsuarioOrmEntity)
+  @JoinColumn({ name: 'usuario_id' })
+  usuario: UsuarioOrmEntity;
+
+  @ManyToOne(() => HardwareOrmEntity)
+  @JoinColumn({ name: 'hardware_id' })
+  hardware: HardwareOrmEntity;
+}
+```
+
+### Cross-Module ORM Imports
+
+`EmprestimoOrmEntity` imports `UsuarioOrmEntity` and `HardwareOrmEntity` for `@ManyToOne` relations. `UsuarioOrmEntity` imports `DepartamentoOrmEntity`. These cross-module imports happen only at the infrastructure level (ORM entities), never at the domain level. This is acceptable — ORM relations are a persistence concern and don't violate domain boundaries.
+
+### DepartamentoOrmEntity and UsuarioOrmEntity
+
+Follow the same pattern. `UsuarioOrmEntity` preserves the `@ManyToOne(() => DepartamentoOrmEntity)` relation. `DepartamentoOrmEntity` has no outbound relations.
+
+### ID Generation: `@PrimaryColumn` vs `@PrimaryGeneratedColumn`
+
+The current entities use `@PrimaryGeneratedColumn('uuid')`, which makes TypeORM generate UUIDs on insert. The new ORM entities switch to `@PrimaryColumn('varchar', { length: 36 })` because IDs are generated in the domain layer via `crypto.randomUUID()` in factory methods.
+
+This is a behavioral change: the domain now owns ID generation, not the database. The `data-source.ts` and migration schema are unaffected — the column type is the same (`varchar(36)`). But any test that relies on TypeORM auto-generating IDs will need to supply them explicitly.
 
 ---
 
 ## Mappers
 
-Mappers convert between domain entities (camelCase) and ORM entities (snake_case). They live in `application/mappers/` because they depend on both layers.
+Mappers live in `infrastructure/persistence/` alongside the ORM entity and repository implementation. This is the natural home because:
+
+1. The mapper's primary dependency is the ORM entity (an infrastructure concern)
+2. The repository implementation is the only consumer of the mapper
+3. Placing them in `application/` would make `application/` depend on `infrastructure/` (ORM entity), violating the dependency rule
+
+The mapper imports the domain entity (inward dependency: infrastructure → domain) and knows about the ORM entity (same layer). This is clean.
 
 ```typescript
-// modules/hardwares/application/mappers/hardware.mapper.ts
+// modules/hardwares/infrastructure/persistence/hardware.mapper.ts
 import { Hardware } from '../../domain/entities/hardware.entity';
-import { HardwareOrmEntity } from '../../infrastructure/persistence/hardware.orm-entity';
+import { HardwareOrmEntity } from './hardware.orm-entity';
 
 export class HardwareMapper {
   static toDomain(orm: HardwareOrmEntity): Hardware {
@@ -459,12 +683,18 @@ export class HardwareMapper {
     orm.descricao_problema = domain.descricaoProblema;
     orm.livre = domain.livre;
     orm.version = domain.version;
+    // created_at and updated_at are NOT set in toOrm().
+    // TypeORM's @CreateDateColumn and @UpdateDateColumn manage these automatically.
+    // On insert: TypeORM sets both. On update: TypeORM updates updated_at.
+    // Setting them explicitly would overwrite TypeORM's auto-management.
     return orm;
   }
 }
 ```
 
-Each feature module has its own mapper. The pattern is identical across all 4 features.
+**Note on `created_at` / `updated_at` in `toOrm()`**: These are intentionally not mapped from domain to ORM. TypeORM's `@CreateDateColumn` and `@UpdateDateColumn` decorators auto-manage these timestamps. Setting them explicitly on `save()` would interfere with that behavior. The `toDomain()` direction reads them from the ORM entity to populate the domain entity's readonly fields.
+
+Each feature module follows this same mapper pattern.
 
 ---
 
@@ -488,8 +718,8 @@ export const HARDWARE_REPOSITORY = Symbol('IHardwareRepository');
 
 - Lives in `domain/` — no framework imports
 - Speaks in domain entities, not ORM entities
-- `Symbol` constant used as NestJS DI token
-- Methods are minimal; add domain-specific queries as use cases need them
+- `Symbol` constant used as NestJS DI token (TypeScript interfaces are erased at runtime)
+- Methods are minimal; add domain-specific queries as use cases need them (YAGNI)
 
 ### TypeORM Repository Implementation
 
@@ -501,8 +731,8 @@ import { Repository } from 'typeorm';
 import { IHardwareRepository } from '../../domain/repositories/hardware.repository.interface';
 import { Hardware } from '../../domain/entities/hardware.entity';
 import { HardwareOrmEntity } from './hardware.orm-entity';
-import { HardwareMapper } from '../../application/mappers/hardware.mapper';
-import { TenantContext } from '@/shared/infrastructure/tenant/tenant-context';
+import { HardwareMapper } from './hardware.mapper';
+import { TenantContext } from '../../../../tenant/application/tenant-context';
 
 @Injectable()
 export class TypeOrmHardwareRepository implements IHardwareRepository {
@@ -513,7 +743,7 @@ export class TypeOrmHardwareRepository implements IHardwareRepository {
   ) {}
 
   async findById(id: string): Promise<Hardware | null> {
-    const empresaId = this.tenantContext.getEmpresaId();
+    const empresaId = this.tenantContext.requireEmpresaId();
     const orm = await this.ormRepo.findOne({
       where: { id, empresa_id: empresaId },
     });
@@ -521,7 +751,7 @@ export class TypeOrmHardwareRepository implements IHardwareRepository {
   }
 
   async findAll(): Promise<Hardware[]> {
-    const empresaId = this.tenantContext.getEmpresaId();
+    const empresaId = this.tenantContext.requireEmpresaId();
     const orms = await this.ormRepo.find({
       where: { empresa_id: empresaId },
     });
@@ -534,13 +764,15 @@ export class TypeOrmHardwareRepository implements IHardwareRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const empresaId = this.tenantContext.getEmpresaId();
+    const empresaId = this.tenantContext.requireEmpresaId();
     await this.ormRepo.delete({ id, empresa_id: empresaId });
   }
 }
 ```
 
-Tenant scoping uses `TenantContext` directly. The existing `TenantRepository` stays in `shared/` as an optional utility.
+**Tenant scoping uses `requireEmpresaId()`** (not `getEmpresaId()`). This returns `string` (not `string | null`) and throws `MissingTenantContextError` if no tenant context is set. Repository operations should never run without a tenant.
+
+The existing `TenantRepository` stays in `tenant/infrastructure/` as an optional utility that feature repositories can use internally if they prefer a wrapper over raw TypeORM + TenantContext.
 
 ### NestJS Module Wiring
 
@@ -565,7 +797,72 @@ import { HARDWARE_REPOSITORY } from './domain/repositories/hardware.repository.i
 export class HardwaresModule {}
 ```
 
-Same pattern for all 4 feature modules.
+Same pattern for all 4 feature modules. Use cases inject the repository via `@Inject(HARDWARE_REPOSITORY)` — they never know about TypeORM.
+
+### SharedModule
+
+```typescript
+// shared/shared.module.ts
+import { Module } from '@nestjs/common';
+
+@Module({
+  // No providers for now — shared/domain/ contains only pure TS classes
+  // Future: could export shared application services
+})
+export class SharedModule {}
+```
+
+The `SharedModule` is minimal since `shared/domain/` contains only plain TypeScript base classes that are imported directly (not via DI). The `TenantModule` and `DatabaseModule` are imported separately by the `AppModule`.
+
+### AppModule Update
+
+```typescript
+// app.module.ts
+import { Module } from '@nestjs/common';
+import { DatabaseModule } from './infrastructure/database/database.module';
+import { TenantModule } from './tenant/tenant.module';
+import { HardwaresModule } from './modules/hardwares/hardwares.module';
+import { EmprestimosModule } from './modules/emprestimos/emprestimos.module';
+import { DepartamentosModule } from './modules/departamentos/departamentos.module';
+import { UsuariosModule } from './modules/usuarios/usuarios.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+@Module({
+  imports: [
+    DatabaseModule,
+    TenantModule,
+    HardwaresModule,
+    EmprestimosModule,
+    DepartamentosModule,
+    UsuariosModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+```
+
+### data-source.ts Update
+
+The `data-source.ts` entity registration must change to import ORM entities from their new locations:
+
+```typescript
+// infrastructure/database/data-source.ts
+import { DepartamentoOrmEntity } from '../../modules/departamentos/infrastructure/persistence/departamento.orm-entity';
+import { UsuarioOrmEntity } from '../../modules/usuarios/infrastructure/persistence/usuario.orm-entity';
+import { HardwareOrmEntity } from '../../modules/hardwares/infrastructure/persistence/hardware.orm-entity';
+import { EmprestimoOrmEntity } from '../../modules/emprestimos/infrastructure/persistence/emprestimo.orm-entity';
+
+export const AppDataSource = new DataSource({
+  // ...
+  entities: [DepartamentoOrmEntity, UsuarioOrmEntity, HardwareOrmEntity, EmprestimoOrmEntity],
+  migrations: [path.resolve(__dirname, './migrations/*{.ts,.js}')],
+  // ...
+});
+```
+
+Migration glob path also updates since migrations now live inside `infrastructure/database/migrations/`.
 
 ---
 
@@ -575,10 +872,42 @@ Same pattern for all 4 feature modules.
 presentation/ → application/ → domain/ ← infrastructure/
 ```
 
-- `domain/` has zero imports from NestJS, TypeORM, or other layers
-- `application/` imports from `domain/` (and knows about ORM entity types for mapping)
-- `infrastructure/` imports from `domain/` (implements interfaces) and uses mappers
+- `domain/` has zero imports from NestJS, TypeORM, or other layers (only `node:crypto` for UUID generation)
+- `application/` imports from `domain/` only
+- `infrastructure/` imports from `domain/` (implements interfaces) and contains mappers
 - `presentation/` imports from `application/` (use cases, DTOs)
+
+### Intentional exception
+
+Mappers live in `infrastructure/persistence/` and import from `domain/`. This is the standard Clean Architecture direction (infrastructure depends on domain). The mapper does NOT live in `application/` — that would violate the rule since `application/` should not know about ORM entities.
+
+---
+
+## Optimistic Locking
+
+Only `Hardware` uses `@VersionColumn()` for optimistic locking. `Emprestimo`, `Departamento`, and `Usuario` do not have version columns. This is consistent with the current schema and the PRD's concurrency requirements (concurrent lending operations on hardware).
+
+---
+
+## Path Aliases
+
+The current `api/tsconfig.json` does not configure path aliases (`paths`). All imports in this spec use relative paths. If the team wants to add a `@/` alias (e.g., `@/shared/domain/...`), this should be configured as a separate step in `api/tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "paths": { "@/*": ["src/*"] }
+  }
+}
+```
+
+This spec does not require path aliases. All import paths work with the current tsconfig.
+
+---
+
+## `domain/services/` Directory
+
+The architecture.md includes `domain/services/` in the target folder structure for cross-entity domain services. This refactor intentionally defers creating `domain/services/` directories. They can be added per-module when a use case reveals business logic spanning multiple entities within the same bounded context. YAGNI applies — there's no known need for domain services yet.
 
 ---
 
@@ -589,43 +918,58 @@ Tests are co-located with source files:
 ```
 modules/hardwares/
 ├── domain/entities/hardware.entity.spec.ts
-├── application/mappers/hardware.mapper.spec.ts
+├── infrastructure/persistence/hardware.mapper.spec.ts
 ├── infrastructure/persistence/hardware.orm-entity.spec.ts
 ├── infrastructure/persistence/hardware.typeorm-repository.spec.ts
 ```
 
-### Test migration from current structure:
+### Test migration from current structure
 
-| Current file                                | New location                                                                          |
-| ------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `entities/hardware.entity.domain.spec.ts`   | `modules/hardwares/domain/entities/hardware.entity.spec.ts`                           |
-| `entities/emprestimo.entity.domain.spec.ts` | `modules/emprestimos/domain/entities/emprestimo.entity.spec.ts`                       |
-| `entities/entities.metadata.spec.ts`        | Split per module into `<module>/infrastructure/persistence/<name>.orm-entity.spec.ts` |
-| `tenant/*.spec.ts`                          | `shared/infrastructure/tenant/*.spec.ts`                                              |
-| `infrastructure/database/*.spec.ts`         | `shared/infrastructure/database/*.spec.ts`                                            |
+| Current file                                                     | New location                                                                          |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `src/entities/hardware.entity.domain.spec.ts`                    | `src/modules/hardwares/domain/entities/hardware.entity.spec.ts`                       |
+| `src/entities/emprestimo.entity.domain.spec.ts`                  | `src/modules/emprestimos/domain/entities/emprestimo.entity.spec.ts`                   |
+| `src/entities/entities.metadata.spec.ts`                         | Split per module into `<module>/infrastructure/persistence/<name>.orm-entity.spec.ts` |
+| `src/tenant/*.spec.ts`                                           | `src/tenant/**/*.spec.ts` (co-located in new tenant subdirs)                          |
+| `src/infrastructure/database/*.spec.ts`                          | `src/infrastructure/database/*.spec.ts` (stays, path unchanged relative to src/)      |
+| `src/infrastructure/database/database.tenant-subscriber.spec.ts` | `src/infrastructure/database/database.tenant-subscriber.spec.ts`                      |
+| `test/tenant/*.spec.ts`                                          | `test/tenant/*.spec.ts` (integration tests stay in test/)                             |
+| `test/database/*.spec.ts`                                        | `test/database/*.spec.ts` (integration tests stay in test/)                           |
 
-### New tests to add:
+### Test updates needed for behavioral changes
 
-- **Mapper round-trip tests** — `toDomain(toOrm(entity))` preserves all fields
-- **ORM metadata contract tests** — per module (split from current monolithic test)
+- **Emprestimo domain tests**: Current tests for `Emprestimo.emprestar()` pass a `Hardware` instance and verify it calls `hardware.emprestar()`. After migration, `Emprestimo.emprestar()` no longer takes a `Hardware`. Tests must be rewritten to test `Emprestimo` independently (factory creates emprestimo, verifies fields) and `Hardware.emprestar()` independently (verifies state changes). Cross-aggregate coordination tests move to use-case tests in Etapa 6.
+- **ID generation in tests**: Current tests may rely on TypeORM auto-generating IDs. After migration, tests must supply IDs explicitly (e.g., `crypto.randomUUID()` or hardcoded UUIDs for deterministic tests).
+- **ORM metadata tests**: The monolithic `entities.metadata.spec.ts` splits into per-module files. Each tests its own ORM entity's TypeORM metadata (table name, column types, relations).
+
+### New tests to add
+
+- **Mapper round-trip tests**: For each feature, verify `toDomain(toOrm(entity))` preserves all fields. This catches mapping bugs early.
+- **Per-module ORM metadata contract tests**: Split from current monolithic test.
 
 ---
 
 ## Migration Steps
 
-1. Create `shared/` folder — move tenant + database infrastructure, update imports
-2. Create feature module directories with DDD layer structure
-3. Extract domain entities from TypeORM entities (plain TS classes with domain methods)
-4. Create ORM entities (TypeORM decorators only, no domain methods)
-5. Create mappers for each feature
-6. Create repository interfaces in each module's `domain/repositories/`
-7. Create TypeORM repository implementations in each module's `infrastructure/persistence/`
-8. Wire NestJS feature modules and update `AppModule`
-9. Move and adapt existing tests to new locations
-10. Delete old `entities/` folder
-11. Verify all tests pass
+1. **Create `tenant/` directory** — restructure current `src/tenant/` into `tenant/application/` and `tenant/infrastructure/` subdirectories, update imports throughout
+2. **Move `infrastructure/database/`** — move `data-source.ts` and `database.module.ts` (already at `src/infrastructure/database/`), move `src/migrations/` into `infrastructure/database/migrations/`, update migration glob path
+3. **Create `shared/` directory** — create `shared/domain/domain-entity.base.ts`, `shared/domain/domain-error.base.ts`, `shared/shared.module.ts`
+4. **Create feature module directories** — scaffold the DDD layer structure for all 4 modules (empty dirs for use-cases, dto, presentation/http)
+5. **Extract domain entities** — create plain TS classes with domain methods for each feature, including `static create()` factories with `crypto.randomUUID()`
+6. **Create domain errors** — split `domain.errors.ts` into per-feature error files extending `DomainError`
+7. **Create ORM entities** — strip domain methods from current entities, keep only decorators + columns, switch from `@PrimaryGeneratedColumn` to `@PrimaryColumn`
+8. **Create mappers** — one per feature in `infrastructure/persistence/`
+9. **Create repository interfaces** — in each module's `domain/repositories/`
+10. **Create repository implementations** — in each module's `infrastructure/persistence/`
+11. **Wire NestJS modules** — create feature module files, update `AppModule`, update `data-source.ts` entity imports
+12. **Move and adapt existing tests** — update imports, rewrite Emprestimo tests for aggregate separation, supply explicit IDs
+13. **Add new tests** — mapper round-trip tests, per-module ORM metadata tests
+14. **Delete old `entities/` folder** — remove once everything is moved and passing
+15. **Verify all tests pass** — run full suite (`pnpm --filter api test`)
 
 **No database migration changes needed.** The schema is unchanged; only the TypeScript representation changes.
+
+**Rollback strategy:** All changes are committed atomically per step. If tests fail at step 15, revert the commits and investigate.
 
 ---
 
@@ -635,12 +979,12 @@ modules/hardwares/
 - Auth module (Etapa 7)
 - Domain events
 - Value objects (can be added when patterns emerge)
+- Domain services directories (deferred — YAGNI)
 - ESLint import boundary enforcement (can be added later)
+- Path alias configuration (optional, independent concern)
 
 ---
 
 ## Files to Delete After Migration
 
-- `api/src/entities/` (entire directory)
-- `api/src/app.controller.ts` (stays — trivial, not part of this refactor)
-- `api/src/app.service.ts` (stays)
+- `api/src/entities/` — entire directory (entities, domain.errors.ts, barrel export, all spec files that have been moved)
