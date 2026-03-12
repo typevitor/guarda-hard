@@ -20,18 +20,25 @@ vi.mock('./data-source', async () => {
 });
 
 describe('DatabaseModule tenant subscriber wiring', () => {
-  it('registers TenantSubscriber in data source subscribers', async () => {
+  it('registers exactly one TenantSubscriber and resolves provider token', async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     try {
       const dataSource = moduleRef.get(DataSource);
-      const subscriberExists = dataSource.subscribers.some(
+      const subscriberCountBefore = dataSource.subscribers.filter(
         (subscriber) => subscriber instanceof TenantSubscriber,
-      );
+      ).length;
+      const providerSubscriber = moduleRef.get(TenantSubscriber);
+      const subscriberCountAfter = dataSource.subscribers.filter(
+        (subscriber) => subscriber instanceof TenantSubscriber,
+      ).length;
 
-      expect(subscriberExists).toBe(true);
+      expect(subscriberCountBefore).toBe(1);
+      expect(providerSubscriber).toBeDefined();
+      expect(providerSubscriber).toBeInstanceOf(TenantSubscriber);
+      expect(subscriberCountAfter).toBe(1);
     } finally {
       await moduleRef.close();
     }
