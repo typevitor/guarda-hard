@@ -8,6 +8,8 @@ out/
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+api/data/*.sqlite
 .env
 .env.*
 !.env.example
