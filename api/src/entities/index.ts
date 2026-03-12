@@ -1,5 +1,4 @@
-// Placeholder exports - actual entities will be implemented in Task 2
-export class Departamento {}
-export class Usuario {}
-export class Hardware {}
-export class Emprestimo {}
+export { Departamento } from './departamento.entity';
+export { Usuario } from './usuario.entity';
+export { Hardware } from './hardware.entity';
+export { Emprestimo } from './emprestimo.entity';
