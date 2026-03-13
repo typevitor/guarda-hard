@@ -531,7 +531,7 @@ Tarefas paralelas:
 - [x] Criar página usuários
 - [x] Criar página hardwares
 - [x] Criar página empréstimo
-- [ ] Criar página devolução
+- [x] Criar página devolução
 - [ ] Criar página relatórios
 
 Tarefas paralelas:
