@@ -544,21 +544,20 @@ Tarefas paralelas:
 
 # Etapa 8 — Relatórios
 
-- [ ] Implementar relatório hardwares disponíveis
-- [ ] Implementar relatório hardwares emprestados
-- [ ] Implementar relatório hardwares defeituosos
-- [ ] Implementar relatório histórico empréstimos
-- [ ] Implementar exportação CSV
-- [x] Padronizar contratos de listagem paginada e filtros para módulos operacionais
+- [x] Implementar relatório hardwares disponíveis
+- [x] Implementar relatório hardwares emprestados
+- [x] Implementar relatório hardwares defeituosos
+- [x] Implementar relatório histórico empréstimos
+- [x] Implementar exportação CSV
 
 ---
 
 # Etapa 9 — Qualidade
 
-- [ ] Configurar CI
+- [x] Configurar CI
 - [ ] Rodar testes no pipeline
-- [ ] Revisão de segurança
-- [ ] Documentação README
+- [x] Revisão de segurança
+- [x] Documentação README
 
 ---
 

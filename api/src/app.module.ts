@@ -7,6 +7,7 @@ import { HardwaresModule } from './modules/hardwares/hardwares.module';
 import { EmprestimosModule } from './modules/emprestimos/emprestimos.module';
 import { DepartamentosModule } from './modules/departamentos/departamentos.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
+import { RelatoriosModule } from './modules/relatorios/relatorios.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module';
     EmprestimosModule,
     DepartamentosModule,
     UsuariosModule,
+    RelatoriosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
