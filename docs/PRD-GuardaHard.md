@@ -549,6 +549,7 @@ Tarefas paralelas:
 - [ ] Implementar relatório hardwares defeituosos
 - [ ] Implementar relatório histórico empréstimos
 - [ ] Implementar exportação CSV
+- [x] Padronizar contratos de listagem paginada e filtros para módulos operacionais
 
 ---
 
