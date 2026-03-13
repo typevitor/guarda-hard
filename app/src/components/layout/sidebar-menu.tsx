@@ -9,7 +9,7 @@ type MenuItem = {
 };
 
 const MENU_ITEMS: MenuItem[] = [
-  { href: "/", label: "Dashboard" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/departamentos", label: "Departamentos" },
   { href: "/usuarios", label: "Usuarios" },
   { href: "/hardwares", label: "Hardwares" },
@@ -19,10 +19,6 @@ const MENU_ITEMS: MenuItem[] = [
 ];
 
 function isActive(pathname: string, href: string): boolean {
-  if (href === "/") {
-    return pathname === "/";
-  }
-
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { SidebarMenu } from "./sidebar-menu";
 
 vi.mock("next/link", () => ({
@@ -17,7 +17,7 @@ vi.mock("next/navigation", () => ({
 import { usePathname } from "next/navigation";
 
 const expectedLinks = [
-  { label: "Dashboard", href: "/" },
+  { label: "Dashboard", href: "/dashboard" },
   { label: "Departamentos", href: "/departamentos" },
   { label: "Usuarios", href: "/usuarios" },
   { label: "Hardwares", href: "/hardwares" },
@@ -30,20 +30,28 @@ describe("SidebarMenu", () => {
   it("renders all Etapa 7 navigation links", () => {
     vi.mocked(usePathname).mockReturnValue("/");
 
-    render(<SidebarMenu />);
+    const html = renderToStaticMarkup(<SidebarMenu />);
+    const document = new DOMParser().parseFromString(html, "text/html");
 
     for (const item of expectedLinks) {
-      const link = screen.getByRole("link", { name: item.label });
-      expect(link.getAttribute("href")).toBe(item.href);
+      const link = Array.from(document.querySelectorAll("a")).find(
+        (candidate) => candidate.textContent?.trim() === item.label,
+      );
+
+      expect(link).toBeDefined();
+      expect(link?.getAttribute("href")).toBe(item.href);
     }
   });
 
   it("highlights the active item by pathname", () => {
     vi.mocked(usePathname).mockReturnValue("/hardwares");
 
-    render(<SidebarMenu />);
+    const html = renderToStaticMarkup(<SidebarMenu />);
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const activeLinks = Array.from(
+      document.querySelectorAll('a[aria-current="page"]'),
+    );
 
-    const activeLinks = screen.getAllByRole("link", { current: "page" });
     expect(activeLinks).toHaveLength(1);
     expect(activeLinks[0]?.getAttribute("href")).toBe("/hardwares");
   });
@@ -51,9 +59,11 @@ describe("SidebarMenu", () => {
   it("renders compact mode with compact menu class", () => {
     vi.mocked(usePathname).mockReturnValue("/usuarios");
 
-    render(<SidebarMenu compact />);
+    const html = renderToStaticMarkup(<SidebarMenu compact />);
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const nav = document.querySelector('nav[aria-label="Menu principal"]');
 
-    const nav = screen.getByRole("navigation", { name: "Menu principal" });
-    expect(nav.className).toContain("menu-compact");
+    expect(nav).toBeDefined();
+    expect(nav?.className).toContain("menu-compact");
   });
 });
