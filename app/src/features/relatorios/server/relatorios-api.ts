@@ -44,6 +44,11 @@ export type RelatorioResultado = {
   linhas: RelatorioLinha[];
 };
 
+type HardwareRelatorioContext = {
+  row: HardwareApiRow;
+  activeEmprestimo: EmprestimoApiRow | null;
+};
+
 function parseSearchValue(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
     return value[0] ?? "";
@@ -85,7 +90,7 @@ function normalizeDate(value: string): string {
 }
 
 function isWithinPeriodo(
-  emprestimo: EmprestimoApiRow | undefined,
+  emprestimo: EmprestimoApiRow | null,
   periodoInicio: string,
   periodoFim: string,
 ): boolean {
@@ -123,7 +128,7 @@ function isHardwareMatch(hardware: HardwareApiRow, value: string): boolean {
   );
 }
 
-function isUsuarioMatch(emprestimo: EmprestimoApiRow | undefined, value: string): boolean {
+function isUsuarioMatch(emprestimo: EmprestimoApiRow | null, value: string): boolean {
   if (!value) {
     return true;
   }
@@ -163,59 +168,58 @@ export async function getRelatorioResultado(
 
   const [hardwares, emprestimos] = await Promise.all([
     fetchJson<HardwareApiRow[]>("/hardwares", cookieHeader),
-    fetchJson<EmprestimoApiRow[]>("/emprestimos", cookieHeader).catch(() => []),
+    fetchJson<EmprestimoApiRow[]>("/emprestimos", cookieHeader),
   ]);
 
-  const emprestimoPorHardware = new Map<string, EmprestimoApiRow>();
+  const activeEmprestimoPorHardware = new Map<string, EmprestimoApiRow>();
 
   for (const emprestimo of emprestimos) {
-    const current = emprestimoPorHardware.get(emprestimo.hardwareId);
+    if (emprestimo.dataDevolucao !== null) {
+      continue;
+    }
+
+    const current = activeEmprestimoPorHardware.get(emprestimo.hardwareId);
 
     if (!current || emprestimo.dataRetirada > current.dataRetirada) {
-      emprestimoPorHardware.set(emprestimo.hardwareId, emprestimo);
+      activeEmprestimoPorHardware.set(emprestimo.hardwareId, emprestimo);
     }
   }
 
-  const linhas = hardwares
-    .map((hardware) => {
-      const emprestimo = emprestimoPorHardware.get(hardware.id);
+  const hardwareContexts: HardwareRelatorioContext[] = hardwares.map((row) => ({
+    row,
+    activeEmprestimo: activeEmprestimoPorHardware.get(row.id) ?? null,
+  }));
+
+  const linhas = hardwareContexts
+    .filter(({ row, activeEmprestimo }) => {
+      const status = getStatus(row);
+
+      if (filtros.status && status !== filtros.status) {
+        return false;
+      }
+
+      if (!isHardwareMatch(row, filtros.hardware)) {
+        return false;
+      }
+
+      if (!isUsuarioMatch(activeEmprestimo, filtros.usuario)) {
+        return false;
+      }
+
+      return isWithinPeriodo(activeEmprestimo, filtros.periodoInicio, filtros.periodoFim);
+    })
+    .map(({ row, activeEmprestimo }) => {
+      const status = getStatus(row);
 
       return {
-        hardwareId: hardware.id,
-        descricao: hardware.descricao,
-        codigoPatrimonio: hardware.codigoPatrimonio,
-        status: getStatus(hardware),
-        usuarioId: emprestimo?.usuarioId ?? null,
-        dataRetirada: emprestimo ? normalizeDate(emprestimo.dataRetirada) : null,
-        dataDevolucao: emprestimo?.dataDevolucao
-          ? normalizeDate(emprestimo.dataDevolucao)
-          : null,
+        hardwareId: row.id,
+        descricao: row.descricao,
+        codigoPatrimonio: row.codigoPatrimonio,
+        status,
+        usuarioId: activeEmprestimo?.usuarioId ?? null,
+        dataRetirada: activeEmprestimo ? normalizeDate(activeEmprestimo.dataRetirada) : null,
+        dataDevolucao: null,
       } satisfies RelatorioLinha;
-    })
-    .filter((linha) => {
-      const emprestimo = linha.hardwareId
-        ? emprestimoPorHardware.get(linha.hardwareId)
-        : undefined;
-
-      if (filtros.status && linha.status !== filtros.status) {
-        return false;
-      }
-
-      if (!isHardwareMatch({
-        id: linha.hardwareId,
-        descricao: linha.descricao,
-        codigoPatrimonio: linha.codigoPatrimonio,
-        funcionando: linha.status !== "defeituoso",
-        livre: linha.status === "disponivel",
-      }, filtros.hardware)) {
-        return false;
-      }
-
-      if (!isUsuarioMatch(emprestimo, filtros.usuario)) {
-        return false;
-      }
-
-      return isWithinPeriodo(emprestimo, filtros.periodoInicio, filtros.periodoFim);
     });
 
   return {

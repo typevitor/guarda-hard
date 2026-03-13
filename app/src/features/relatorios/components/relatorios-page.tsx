@@ -48,7 +48,10 @@ export function RelatoriosPage({
       <h2 className="panel-title">Relatorios</h2>
       <p className="panel-text">Filtre por status, periodo, usuario e hardware.</p>
 
-      <RelatorioFiltrosForm onSubmit={handleApplyFiltros} />
+      <RelatorioFiltrosForm
+        initialValues={resultado.filtros}
+        onSubmit={handleApplyFiltros}
+      />
       {status ? <p role="status">{status.message}</p> : null}
 
       <div className="panel-text">

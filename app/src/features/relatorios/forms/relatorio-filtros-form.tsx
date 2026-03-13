@@ -11,17 +11,21 @@ import {
 } from "../schemas/relatorio-filtros-schema";
 
 type RelatorioFiltrosFormProps = {
+  initialValues?: RelatorioFiltrosPayload;
   onSubmit: (values: RelatorioFiltrosPayload, queryString: string) => Promise<void>;
 };
 
-export function RelatorioFiltrosForm({ onSubmit }: RelatorioFiltrosFormProps) {
+export function RelatorioFiltrosForm({
+  initialValues = relatorioFiltrosDefaultValues,
+  onSubmit,
+}: RelatorioFiltrosFormProps) {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RelatorioFiltrosPayload>({
     resolver: zodResolver(relatorioFiltrosSchema),
-    defaultValues: relatorioFiltrosDefaultValues,
+    defaultValues: initialValues,
   });
 
   return (

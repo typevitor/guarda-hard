@@ -67,4 +67,31 @@ describe("RelatorioFiltrosForm", () => {
       "hardware=desktop",
     );
   });
+
+  it("inicializa campos com filtros atuais", () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <RelatorioFiltrosForm
+        initialValues={{
+          status: "defeituoso",
+          periodoInicio: "2026-02-01",
+          periodoFim: "2026-02-28",
+          usuario: "maria",
+          hardware: "dell",
+        }}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    expect((screen.getByLabelText("Status") as HTMLSelectElement).value).toBe("defeituoso");
+    expect((screen.getByLabelText("Periodo inicial") as HTMLInputElement).value).toBe(
+      "2026-02-01",
+    );
+    expect((screen.getByLabelText("Periodo final") as HTMLInputElement).value).toBe(
+      "2026-02-28",
+    );
+    expect((screen.getByLabelText("Usuario") as HTMLInputElement).value).toBe("maria");
+    expect((screen.getByLabelText("Hardware") as HTMLInputElement).value).toBe("dell");
+  });
 });
