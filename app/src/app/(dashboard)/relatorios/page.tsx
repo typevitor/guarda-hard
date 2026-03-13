@@ -1,6 +1,7 @@
 import { RelatoriosPage } from "@/features/relatorios/components/relatorios-page";
 import type { RelatorioFiltrosPayload } from "@/features/relatorios/schemas/relatorio-filtros-schema";
 import {
+  getHistoricoResultado,
   getRelatorioResultado,
   parseRelatorioFiltros,
 } from "@/features/relatorios/server/relatorios-api";
@@ -14,7 +15,10 @@ export default async function RelatoriosRoutePage({
 }: RelatoriosRoutePageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const initialFiltros = parseRelatorioFiltros(resolvedSearchParams);
-  const initialResultado = await getRelatorioResultado(initialFiltros);
+  const [initialResultado, initialHistorico] = await Promise.all([
+    getRelatorioResultado(initialFiltros),
+    getHistoricoResultado(initialFiltros),
+  ]);
 
   async function applyFiltros(
     values: RelatorioFiltrosPayload,
@@ -24,5 +28,20 @@ export default async function RelatoriosRoutePage({
     return getRelatorioResultado(values);
   }
 
-  return <RelatoriosPage initialResultado={initialResultado} onApplyFiltros={applyFiltros} />;
+  async function applyHistoricoFiltros(
+    values: RelatorioFiltrosPayload,
+  ): Promise<typeof initialHistorico> {
+    "use server";
+
+    return getHistoricoResultado(values);
+  }
+
+  return (
+    <RelatoriosPage
+      initialResultado={initialResultado}
+      initialHistorico={initialHistorico}
+      onApplyFiltros={applyFiltros}
+      onApplyHistoricoFiltros={applyHistoricoFiltros}
+    />
+  );
 }
