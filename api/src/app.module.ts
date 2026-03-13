@@ -3,9 +3,20 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { TenantModule } from './tenant';
+import { HardwaresModule } from './modules/hardwares/hardwares.module';
+import { EmprestimosModule } from './modules/emprestimos/emprestimos.module';
+import { DepartamentosModule } from './modules/departamentos/departamentos.module';
+import { UsuariosModule } from './modules/usuarios/usuarios.module';
 
 @Module({
-  imports: [DatabaseModule, TenantModule],
+  imports: [
+    DatabaseModule,
+    TenantModule,
+    HardwaresModule,
+    EmprestimosModule,
+    DepartamentosModule,
+    UsuariosModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
