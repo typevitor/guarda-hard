@@ -3,6 +3,7 @@ import { TenantContext } from '../../../../tenant/application/tenant-context';
 import { Hardware } from '../../domain/entities/hardware.entity';
 import type {
   CreateHardwareDto,
+  HardwareListQueryDto,
   MarcarDefeitoDto,
   UpdateHardwareDto,
 } from '../dto/hardware.schemas';
@@ -13,6 +14,8 @@ import { UpdateHardwareUseCase } from '../use-cases/update-hardware.use-case';
 import { DeleteHardwareUseCase } from '../use-cases/delete-hardware.use-case';
 import { MarcarDefeitoUseCase } from '../use-cases/marcar-defeito.use-case';
 import { ConsertarHardwareUseCase } from '../use-cases/consertar-hardware.use-case';
+import { ListHardwaresPaginadoUseCase } from '../use-cases/list-hardwares-paginado.use-case';
+import { PaginatedHardwares } from '../../domain/repositories/hardware.repository.interface';
 
 @Injectable()
 export class HardwaresService {
@@ -23,6 +26,8 @@ export class HardwaresService {
     private readonly createHardwareUseCase: CreateHardwareUseCase,
     @Inject(ListHardwaresUseCase)
     private readonly listHardwaresUseCase: ListHardwaresUseCase,
+    @Inject(ListHardwaresPaginadoUseCase)
+    private readonly listHardwaresPaginadoUseCase: ListHardwaresPaginadoUseCase,
     @Inject(GetHardwareByIdUseCase)
     private readonly getHardwareByIdUseCase: GetHardwareByIdUseCase,
     @Inject(UpdateHardwareUseCase)
@@ -49,6 +54,12 @@ export class HardwaresService {
 
   async list(): Promise<Hardware[]> {
     return this.listHardwaresUseCase.execute();
+  }
+
+  async listPaginated(
+    query: HardwareListQueryDto,
+  ): Promise<PaginatedHardwares> {
+    return this.listHardwaresPaginadoUseCase.execute(query);
   }
 
   async getById(id: string): Promise<Hardware> {

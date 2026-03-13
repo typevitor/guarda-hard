@@ -11,6 +11,17 @@ import { TestTenantContext } from './test-tenant-context';
 type DepartamentoRepo = {
   findById(id: string): Promise<Departamento | null>;
   findAll(): Promise<Departamento[]>;
+  listPaginated(query: {
+    page: number;
+    pageSize: 10;
+    search?: string;
+  }): Promise<{
+    items: Departamento[];
+    page: number;
+    pageSize: 10;
+    total: number;
+    totalPages: number;
+  }>;
   save(entity: Departamento): Promise<void>;
   delete(id: string): Promise<void>;
 };
@@ -36,6 +47,35 @@ class InMemoryDepartamentoRepository implements DepartamentoRepo {
     return [...this.rows.values()].filter(
       (row) => row.empresaId === this.currentTenant,
     );
+  }
+
+  async listPaginated(query: {
+    page: number;
+    pageSize: 10;
+    search?: string;
+  }): Promise<{
+    items: Departamento[];
+    page: number;
+    pageSize: 10;
+    total: number;
+    totalPages: number;
+  }> {
+    const filtered = (await this.findAll()).filter((row) =>
+      query.search
+        ? row.nome.toLowerCase().includes(query.search.toLowerCase())
+        : true,
+    );
+
+    const start = (query.page - 1) * 10;
+    const items = filtered.slice(start, start + 10);
+
+    return {
+      items,
+      page: query.page,
+      pageSize: 10,
+      total: filtered.length,
+      totalPages: Math.ceil(filtered.length / 10),
+    };
   }
 
   async save(entity: Departamento): Promise<void> {
@@ -103,8 +143,8 @@ describe('Departamentos API', () => {
 
     const listB = await request(app.getHttpServer()).get('/departamentos');
     expect(listB.status).toBe(200);
-    expect(listB.body).toHaveLength(1);
-    expect(listB.body[0].nome).toBe('Comercial');
+    expect(listB.body.items).toHaveLength(1);
+    expect(listB.body.items[0].nome).toBe('Comercial');
 
     const getCrossTenant = await request(app.getHttpServer()).get(
       `/departamentos/${createdId}`,
@@ -138,8 +178,8 @@ describe('Departamentos API', () => {
 
     const listA = await request(app.getHttpServer()).get('/departamentos');
     expect(listA.status).toBe(200);
-    expect(listA.body).toHaveLength(1);
-    expect(listA.body[0].nome).toBe('Suporte N2');
+    expect(listA.body.items).toHaveLength(1);
+    expect(listA.body.items[0].nome).toBe('Suporte N2');
 
     const deleteA = await request(app.getHttpServer()).delete(
       `/departamentos/${createdId}`,

@@ -2,7 +2,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IDepartamentoRepository } from '../../domain/repositories/departamento.repository.interface';
+import {
+  type DepartamentoListQuery,
+  IDepartamentoRepository,
+  type PaginatedDepartamentos,
+} from '../../domain/repositories/departamento.repository.interface';
 import { Departamento } from '../../domain/entities/departamento.entity';
 import { DepartamentoOrmEntity } from './departamento.orm-entity';
 import { DepartamentoMapper } from './departamento.mapper';
@@ -28,6 +32,39 @@ export class TypeOrmDepartamentoRepository implements IDepartamentoRepository {
     const empresaId = this.tenantContext.requireEmpresaId();
     const orms = await this.ormRepo.find({ where: { empresa_id: empresaId } });
     return orms.map((orm) => DepartamentoMapper.toDomain(orm));
+  }
+
+  async listPaginated(
+    query: DepartamentoListQuery,
+  ): Promise<PaginatedDepartamentos> {
+    const empresaId = this.tenantContext.requireEmpresaId();
+    const page = query.page;
+    const pageSize = 10;
+
+    const qb = this.ormRepo
+      .createQueryBuilder('departamento')
+      .where('departamento.empresa_id = :empresaId', { empresaId });
+
+    if (query.search) {
+      qb.andWhere('LOWER(departamento.nome) LIKE :search', {
+        search: `%${query.search.toLowerCase()}%`,
+      });
+    }
+
+    qb.orderBy('departamento.created_at', 'DESC').addOrderBy('departamento.id', 'DESC');
+
+    const [rows, total] = await qb
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+
+    return {
+      items: rows.map((orm) => DepartamentoMapper.toDomain(orm)),
+      page,
+      pageSize: 10,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   async save(departamento: Departamento): Promise<void> {

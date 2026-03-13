@@ -41,7 +41,22 @@ export const emprestimoListQuerySchema = paginationQuerySchema.and(
     devolucaoTo: isoDateStringSchema.optional(),
     status: emprestimoStatusFilterSchema.optional(),
   }),
-);
+) as z.ZodType<
+  {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    usuarioId?: string;
+    hardwareId?: string;
+    retiradaFrom?: string;
+    retiradaTo?: string;
+    devolucaoFrom?: string;
+    devolucaoTo?: string;
+    status?: 'open' | 'returned';
+  },
+  z.ZodTypeDef,
+  unknown
+>;
 
 export type CreateEmprestimoDto = z.infer<typeof createEmprestimoSchema>;
 export type EmprestimoIdParamDto = z.infer<typeof emprestimoIdParamSchema>;

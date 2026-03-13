@@ -2,7 +2,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IUsuarioRepository } from '../../domain/repositories/usuario.repository.interface';
+import {
+  IUsuarioRepository,
+  type PaginatedUsuarios,
+  type UsuarioListQuery,
+} from '../../domain/repositories/usuario.repository.interface';
 import { Usuario } from '../../domain/entities/usuario.entity';
 import { UsuarioOrmEntity } from './usuario.orm-entity';
 import { UsuarioMapper } from './usuario.mapper';
@@ -28,6 +32,47 @@ export class TypeOrmUsuarioRepository implements IUsuarioRepository {
     const empresaId = this.tenantContext.requireEmpresaId();
     const orms = await this.ormRepo.find({ where: { empresa_id: empresaId } });
     return orms.map((orm) => UsuarioMapper.toDomain(orm));
+  }
+
+  async listPaginated(query: UsuarioListQuery): Promise<PaginatedUsuarios> {
+    const empresaId = this.tenantContext.requireEmpresaId();
+    const page = query.page;
+    const pageSize = 10;
+
+    const qb = this.ormRepo
+      .createQueryBuilder('usuario')
+      .where('usuario.empresa_id = :empresaId', { empresaId });
+
+    if (query.search) {
+      qb.andWhere('(LOWER(usuario.nome) LIKE :search OR LOWER(usuario.email) LIKE :search)', {
+        search: `%${query.search.toLowerCase()}%`,
+      });
+    }
+
+    if (query.departamentoId) {
+      qb.andWhere('usuario.departamento_id = :departamentoId', {
+        departamentoId: query.departamentoId,
+      });
+    }
+
+    if (query.ativo !== undefined) {
+      qb.andWhere('usuario.ativo = :ativo', { ativo: query.ativo });
+    }
+
+    qb.orderBy('usuario.created_at', 'DESC').addOrderBy('usuario.id', 'DESC');
+
+    const [rows, total] = await qb
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+
+    return {
+      items: rows.map((orm) => UsuarioMapper.toDomain(orm)),
+      page,
+      pageSize: 10,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   async save(usuario: Usuario): Promise<void> {

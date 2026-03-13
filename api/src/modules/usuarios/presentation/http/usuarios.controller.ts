@@ -8,13 +8,16 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UsuariosService } from '../../application/services/usuarios.service';
 import {
   createUsuarioSchema,
   type CreateUsuarioDto,
+  type UsuarioListQueryDto,
   updateUsuarioSchema,
   type UpdateUsuarioDto,
+  usuarioListQuerySchema,
   usuarioIdParamSchema,
 } from '../../application/dto/usuario.schemas';
 import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-validation.pipe';
@@ -29,6 +32,14 @@ type UsuarioHttpResponse = {
   ativo: boolean;
   createdAt: string;
   updatedAt: string;
+};
+
+type PaginatedUsuarioHttpResponse = {
+  items: UsuarioHttpResponse[];
+  page: number;
+  pageSize: 10;
+  total: number;
+  totalPages: number;
 };
 
 @Controller('usuarios')
@@ -48,9 +59,19 @@ export class UsuariosController {
   }
 
   @Get()
-  async list(): Promise<UsuarioHttpResponse[]> {
-    const rows = await this.usuariosService.list();
-    return rows.map((row) => this.toResponse(row));
+  async list(
+    @Query(new ZodValidationPipe(usuarioListQuerySchema))
+    query: UsuarioListQueryDto,
+  ): Promise<PaginatedUsuarioHttpResponse> {
+    const result = await this.usuariosService.listPaginated(query);
+
+    return {
+      items: result.items.map((row) => this.toResponse(row)),
+      page: result.page,
+      pageSize: result.pageSize,
+      total: result.total,
+      totalPages: result.totalPages,
+    };
   }
 
   @Get(':id')

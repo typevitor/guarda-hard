@@ -5,6 +5,7 @@ import { TypeOrmHardwareRepository } from './infrastructure/persistence/hardware
 import { HARDWARE_REPOSITORY } from './domain/repositories/hardware.repository.interface';
 import { CreateHardwareUseCase } from './application/use-cases/create-hardware.use-case';
 import { ListHardwaresUseCase } from './application/use-cases/list-hardwares.use-case';
+import { ListHardwaresPaginadoUseCase } from './application/use-cases/list-hardwares-paginado.use-case';
 import { GetHardwareByIdUseCase } from './application/use-cases/get-hardware-by-id.use-case';
 import { UpdateHardwareUseCase } from './application/use-cases/update-hardware.use-case';
 import { DeleteHardwareUseCase } from './application/use-cases/delete-hardware.use-case';
@@ -24,6 +25,7 @@ import { TenantModule } from '../../tenant/tenant.module';
     },
     CreateHardwareUseCase,
     ListHardwaresUseCase,
+    ListHardwaresPaginadoUseCase,
     GetHardwareByIdUseCase,
     UpdateHardwareUseCase,
     DeleteHardwareUseCase,

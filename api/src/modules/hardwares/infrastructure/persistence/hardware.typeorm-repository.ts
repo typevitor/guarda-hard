@@ -2,7 +2,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IHardwareRepository } from '../../domain/repositories/hardware.repository.interface';
+import {
+  type HardwareListQuery,
+  IHardwareRepository,
+  type PaginatedHardwares,
+} from '../../domain/repositories/hardware.repository.interface';
 import { Hardware } from '../../domain/entities/hardware.entity';
 import { HardwareOrmEntity } from './hardware.orm-entity';
 import { HardwareMapper } from './hardware.mapper';
@@ -30,6 +34,50 @@ export class TypeOrmHardwareRepository implements IHardwareRepository {
       where: { empresa_id: empresaId },
     });
     return orms.map((orm) => HardwareMapper.toDomain(orm));
+  }
+
+  async listPaginated(query: HardwareListQuery): Promise<PaginatedHardwares> {
+    const empresaId = this.tenantContext.requireEmpresaId();
+    const page = query.page;
+    const pageSize = 10;
+
+    const qb = this.ormRepo
+      .createQueryBuilder('hardware')
+      .where('hardware.empresa_id = :empresaId', { empresaId });
+
+    if (query.search) {
+      qb.andWhere(
+        '(LOWER(hardware.descricao) LIKE :search OR LOWER(hardware.marca) LIKE :search OR LOWER(hardware.modelo) LIKE :search OR LOWER(hardware.codigo_patrimonio) LIKE :search)',
+        {
+          search: `%${query.search.toLowerCase()}%`,
+        },
+      );
+    }
+
+    if (query.funcionando !== undefined) {
+      qb.andWhere('hardware.funcionando = :funcionando', {
+        funcionando: query.funcionando,
+      });
+    }
+
+    if (query.livre !== undefined) {
+      qb.andWhere('hardware.livre = :livre', { livre: query.livre });
+    }
+
+    qb.orderBy('hardware.created_at', 'DESC').addOrderBy('hardware.id', 'DESC');
+
+    const [rows, total] = await qb
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+
+    return {
+      items: rows.map((orm) => HardwareMapper.toDomain(orm)),
+      page,
+      pageSize: 10,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   async save(hardware: Hardware): Promise<void> {

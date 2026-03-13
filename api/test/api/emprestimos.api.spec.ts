@@ -35,6 +35,76 @@ class InMemoryEmprestimoRepository {
     );
   }
 
+  async listPaginated(query: {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    usuarioId?: string;
+    hardwareId?: string;
+    retiradaFrom?: string;
+    retiradaTo?: string;
+    devolucaoFrom?: string;
+    devolucaoTo?: string;
+    status?: 'open' | 'returned';
+  }): Promise<{
+    items: Emprestimo[];
+    page: number;
+    pageSize: 10;
+    total: number;
+    totalPages: number;
+  }> {
+    const filtered = (await this.findAll())
+      .filter((row) =>
+        query.status === 'open' ? row.dataDevolucao === null : true,
+      )
+      .filter((row) =>
+        query.status === 'returned' ? row.dataDevolucao !== null : true,
+      )
+      .filter((row) => (query.usuarioId ? row.usuarioId === query.usuarioId : true))
+      .filter((row) =>
+        query.hardwareId ? row.hardwareId === query.hardwareId : true,
+      )
+      .filter((row) => {
+        if (!query.retiradaFrom) {
+          return true;
+        }
+
+        return row.dataRetirada >= new Date(query.retiradaFrom);
+      })
+      .filter((row) => {
+        if (!query.retiradaTo) {
+          return true;
+        }
+
+        return row.dataRetirada <= new Date(query.retiradaTo);
+      })
+      .filter((row) => {
+        if (!query.devolucaoFrom) {
+          return true;
+        }
+
+        return row.dataDevolucao ? row.dataDevolucao >= new Date(query.devolucaoFrom) : false;
+      })
+      .filter((row) => {
+        if (!query.devolucaoTo) {
+          return true;
+        }
+
+        return row.dataDevolucao ? row.dataDevolucao <= new Date(query.devolucaoTo) : false;
+      });
+
+    const start = (query.page - 1) * 10;
+    const items = filtered.slice(start, start + 10);
+
+    return {
+      items,
+      page: query.page,
+      pageSize: 10,
+      total: filtered.length,
+      totalPages: Math.ceil(filtered.length / 10),
+    };
+  }
+
   async save(entity: Emprestimo): Promise<void> {
     this.rows.set(entity.id, entity);
   }
@@ -68,6 +138,22 @@ class InMemoryHardwareRepository {
     return [...this.rows.values()].filter(
       (row) => row.empresaId === this.currentTenant,
     );
+  }
+
+  async listPaginated(): Promise<{
+    items: Hardware[];
+    page: number;
+    pageSize: 10;
+    total: number;
+    totalPages: number;
+  }> {
+    return {
+      items: await this.findAll(),
+      page: 1,
+      pageSize: 10,
+      total: this.rows.size,
+      totalPages: Math.ceil(this.rows.size / 10),
+    };
   }
 
   async save(entity: Hardware): Promise<void> {
@@ -107,6 +193,22 @@ class InMemoryUsuarioRepository {
     return [...this.rows.values()].filter(
       (row) => row.empresaId === this.currentTenant,
     );
+  }
+
+  async listPaginated(): Promise<{
+    items: Usuario[];
+    page: number;
+    pageSize: 10;
+    total: number;
+    totalPages: number;
+  }> {
+    return {
+      items: await this.findAll(),
+      page: 1,
+      pageSize: 10,
+      total: this.rows.size,
+      totalPages: Math.ceil(this.rows.size / 10),
+    };
   }
 
   async save(entity: Usuario): Promise<void> {

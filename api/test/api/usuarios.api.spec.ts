@@ -11,6 +11,19 @@ import { TestTenantContext } from './test-tenant-context';
 type UsuarioRepo = {
   findById(id: string): Promise<Usuario | null>;
   findAll(): Promise<Usuario[]>;
+  listPaginated(query: {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    departamentoId?: string;
+    ativo?: boolean;
+  }): Promise<{
+    items: Usuario[];
+    page: number;
+    pageSize: 10;
+    total: number;
+    totalPages: number;
+  }>;
   save(entity: Usuario): Promise<void>;
   delete(id: string): Promise<void>;
 };
@@ -36,6 +49,42 @@ class InMemoryUsuarioRepository implements UsuarioRepo {
     return [...this.rows.values()].filter(
       (row) => row.empresaId === this.currentTenant,
     );
+  }
+
+  async listPaginated(query: {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    departamentoId?: string;
+    ativo?: boolean;
+  }): Promise<{
+    items: Usuario[];
+    page: number;
+    pageSize: 10;
+    total: number;
+    totalPages: number;
+  }> {
+    const filtered = (await this.findAll())
+      .filter((row) =>
+        query.search
+          ? row.nome.toLowerCase().includes(query.search.toLowerCase())
+          : true,
+      )
+      .filter((row) =>
+        query.departamentoId ? row.departamentoId === query.departamentoId : true,
+      )
+      .filter((row) => (query.ativo !== undefined ? row.ativo === query.ativo : true));
+
+    const start = (query.page - 1) * 10;
+    const items = filtered.slice(start, start + 10);
+
+    return {
+      items,
+      page: query.page,
+      pageSize: 10,
+      total: filtered.length,
+      totalPages: Math.ceil(filtered.length / 10),
+    };
   }
 
   async save(entity: Usuario): Promise<void> {
@@ -99,8 +148,8 @@ describe('Usuarios API', () => {
 
     const listB = await request(app.getHttpServer()).get('/usuarios');
     expect(listB.status).toBe(200);
-    expect(listB.body).toHaveLength(1);
-    expect(listB.body[0].nome).toBe('Bob');
+    expect(listB.body.items).toHaveLength(1);
+    expect(listB.body.items[0].nome).toBe('Bob');
 
     const getCrossTenant = await request(app.getHttpServer()).get(
       `/usuarios/${createdId}`,

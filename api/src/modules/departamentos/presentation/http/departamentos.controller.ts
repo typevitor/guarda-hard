@@ -8,11 +8,14 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { DepartamentosService } from '../../application/services/departamentos.service';
 import {
   createDepartamentoSchema,
   departamentoIdParamSchema,
+  departamentoListQuerySchema,
+  type DepartamentoListQueryDto,
   type CreateDepartamentoDto,
   updateDepartamentoSchema,
   type UpdateDepartamentoDto,
@@ -26,6 +29,14 @@ type DepartamentoHttpResponse = {
   nome: string;
   createdAt: string;
   updatedAt: string;
+};
+
+type PaginatedDepartamentoHttpResponse = {
+  items: DepartamentoHttpResponse[];
+  page: number;
+  pageSize: 10;
+  total: number;
+  totalPages: number;
 };
 
 @Controller('departamentos')
@@ -45,9 +56,19 @@ export class DepartamentosController {
   }
 
   @Get()
-  async list(): Promise<DepartamentoHttpResponse[]> {
-    const rows = await this.departamentosService.list();
-    return rows.map((row) => this.toResponse(row));
+  async list(
+    @Query(new ZodValidationPipe(departamentoListQuerySchema))
+    query: DepartamentoListQueryDto,
+  ): Promise<PaginatedDepartamentoHttpResponse> {
+    const result = await this.departamentosService.listPaginated(query);
+
+    return {
+      items: result.items.map((row) => this.toResponse(row)),
+      page: result.page,
+      pageSize: result.pageSize,
+      total: result.total,
+      totalPages: result.totalPages,
+    };
   }
 
   @Get(':id')

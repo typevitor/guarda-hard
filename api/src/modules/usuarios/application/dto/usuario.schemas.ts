@@ -50,7 +50,17 @@ export const usuarioListQuerySchema = paginationQuerySchema.and(
     departamentoId: z.string().uuid().optional(),
     ativo: booleanStringSchema.optional(),
   }),
-);
+) as z.ZodType<
+  {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    departamentoId?: string;
+    ativo?: boolean;
+  },
+  z.ZodTypeDef,
+  unknown
+>;
 
 export type CreateUsuarioDto = z.infer<typeof createUsuarioSchema>;
 export type UpdateUsuarioDto = z.infer<typeof updateUsuarioSchema>;

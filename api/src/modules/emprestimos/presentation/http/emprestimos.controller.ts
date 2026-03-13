@@ -1,9 +1,11 @@
-import { Body, Controller, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Query } from '@nestjs/common';
 import { EmprestimosService } from '../../application/services/emprestimos.service';
 import {
   createEmprestimoSchema,
   emprestimoIdParamSchema,
   type CreateEmprestimoDto,
+  emprestimoListQuerySchema,
+  type EmprestimoListQueryDto,
 } from '../../application/dto/emprestimo.schemas';
 import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-validation.pipe';
 import { Emprestimo } from '../../domain/entities/emprestimo.entity';
@@ -17,6 +19,14 @@ type EmprestimoHttpResponse = {
   dataDevolucao: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+type PaginatedEmprestimoHttpResponse = {
+  items: EmprestimoHttpResponse[];
+  page: number;
+  pageSize: 10;
+  total: number;
+  totalPages: number;
 };
 
 @Controller('emprestimos')
@@ -44,6 +54,22 @@ export class EmprestimosController {
   ): Promise<EmprestimoHttpResponse> {
     const updated = await this.emprestimosService.devolver(params.id);
     return this.toResponse(updated);
+  }
+
+  @Get()
+  async list(
+    @Query(new ZodValidationPipe(emprestimoListQuerySchema))
+    query: EmprestimoListQueryDto,
+  ): Promise<PaginatedEmprestimoHttpResponse> {
+    const result = await this.emprestimosService.listPaginated(query);
+
+    return {
+      items: result.items.map((row) => this.toResponse(row)),
+      page: result.page,
+      pageSize: result.pageSize,
+      total: result.total,
+      totalPages: result.totalPages,
+    };
   }
 
   private toResponse(entity: Emprestimo): EmprestimoHttpResponse {

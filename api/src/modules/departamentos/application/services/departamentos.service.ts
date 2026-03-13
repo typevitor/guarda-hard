@@ -2,14 +2,17 @@ import { Inject, Injectable } from '@nestjs/common';
 import { TenantContext } from '../../../../tenant/application/tenant-context';
 import type {
   CreateDepartamentoDto,
+  DepartamentoListQueryDto,
   UpdateDepartamentoDto,
 } from '../dto/departamento.schemas';
 import { CreateDepartamentoUseCase } from '../use-cases/create-departamento.use-case';
 import { ListDepartamentosUseCase } from '../use-cases/list-departamentos.use-case';
+import { ListDepartamentosPaginadoUseCase } from '../use-cases/list-departamentos-paginado.use-case';
 import { GetDepartamentoByIdUseCase } from '../use-cases/get-departamento-by-id.use-case';
 import { UpdateDepartamentoUseCase } from '../use-cases/update-departamento.use-case';
 import { DeleteDepartamentoUseCase } from '../use-cases/delete-departamento.use-case';
 import { Departamento } from '../../domain/entities/departamento.entity';
+import { PaginatedDepartamentos } from '../../domain/repositories/departamento.repository.interface';
 
 @Injectable()
 export class DepartamentosService {
@@ -20,6 +23,8 @@ export class DepartamentosService {
     private readonly createDepartamentoUseCase: CreateDepartamentoUseCase,
     @Inject(ListDepartamentosUseCase)
     private readonly listDepartamentosUseCase: ListDepartamentosUseCase,
+    @Inject(ListDepartamentosPaginadoUseCase)
+    private readonly listDepartamentosPaginadoUseCase: ListDepartamentosPaginadoUseCase,
     @Inject(GetDepartamentoByIdUseCase)
     private readonly getDepartamentoByIdUseCase: GetDepartamentoByIdUseCase,
     @Inject(UpdateDepartamentoUseCase)
@@ -39,6 +44,12 @@ export class DepartamentosService {
 
   async list(): Promise<Departamento[]> {
     return this.listDepartamentosUseCase.execute();
+  }
+
+  async listPaginated(
+    query: DepartamentoListQueryDto,
+  ): Promise<PaginatedDepartamentos> {
+    return this.listDepartamentosPaginadoUseCase.execute(query);
   }
 
   async getById(id: string): Promise<Departamento> {

@@ -5,6 +5,7 @@ import { TypeOrmEmprestimoRepository } from './infrastructure/persistence/empres
 import { EMPRESTIMO_REPOSITORY } from './domain/repositories/emprestimo.repository.interface';
 import { EmprestarHardwareUseCase } from './application/use-cases/emprestar-hardware.use-case';
 import { DevolverHardwareUseCase } from './application/use-cases/devolver-hardware.use-case';
+import { ListEmprestimosPaginadoUseCase } from './application/use-cases/list-emprestimos-paginado.use-case';
 import { EmprestimosService } from './application/services/emprestimos.service';
 import { EmprestimosController } from './presentation/http/emprestimos.controller';
 import { HardwaresModule } from '../hardwares/hardwares.module';
@@ -26,6 +27,7 @@ import { TenantModule } from '../../tenant/tenant.module';
     },
     EmprestarHardwareUseCase,
     DevolverHardwareUseCase,
+    ListEmprestimosPaginadoUseCase,
     EmprestimosService,
   ],
   exports: [EMPRESTIMO_REPOSITORY, EmprestimosService],

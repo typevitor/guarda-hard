@@ -8,13 +8,16 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { HardwaresService } from '../../application/services/hardwares.service';
 import {
   createHardwareSchema,
   hardwareIdParamSchema,
+  hardwareListQuerySchema,
   marcarDefeitoSchema,
   type CreateHardwareDto,
+  type HardwareListQueryDto,
   type MarcarDefeitoDto,
   type UpdateHardwareDto,
   updateHardwareSchema,
@@ -37,6 +40,14 @@ type HardwareHttpResponse = {
   updatedAt: string;
 };
 
+type PaginatedHardwareHttpResponse = {
+  items: HardwareHttpResponse[];
+  page: number;
+  pageSize: 10;
+  total: number;
+  totalPages: number;
+};
+
 @Controller('hardwares')
 export class HardwaresController {
   constructor(
@@ -54,9 +65,19 @@ export class HardwaresController {
   }
 
   @Get()
-  async list(): Promise<HardwareHttpResponse[]> {
-    const rows = await this.hardwaresService.list();
-    return rows.map((row) => this.toResponse(row));
+  async list(
+    @Query(new ZodValidationPipe(hardwareListQuerySchema))
+    query: HardwareListQueryDto,
+  ): Promise<PaginatedHardwareHttpResponse> {
+    const result = await this.hardwaresService.listPaginated(query);
+
+    return {
+      items: result.items.map((row) => this.toResponse(row)),
+      page: result.page,
+      pageSize: result.pageSize,
+      total: result.total,
+      totalPages: result.totalPages,
+    };
   }
 
   @Get(':id')

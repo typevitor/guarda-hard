@@ -11,6 +11,19 @@ import { TestTenantContext } from './test-tenant-context';
 type HardwareRepo = {
   findById(id: string): Promise<Hardware | null>;
   findAll(): Promise<Hardware[]>;
+  listPaginated(query: {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    funcionando?: boolean;
+    livre?: boolean;
+  }): Promise<{
+    items: Hardware[];
+    page: number;
+    pageSize: 10;
+    total: number;
+    totalPages: number;
+  }>;
   save(entity: Hardware): Promise<void>;
   delete(id: string): Promise<void>;
 };
@@ -36,6 +49,42 @@ class InMemoryHardwareRepository implements HardwareRepo {
     return [...this.rows.values()].filter(
       (row) => row.empresaId === this.currentTenant,
     );
+  }
+
+  async listPaginated(query: {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    funcionando?: boolean;
+    livre?: boolean;
+  }): Promise<{
+    items: Hardware[];
+    page: number;
+    pageSize: 10;
+    total: number;
+    totalPages: number;
+  }> {
+    const filtered = (await this.findAll())
+      .filter((row) =>
+        query.search
+          ? row.descricao.toLowerCase().includes(query.search.toLowerCase())
+          : true,
+      )
+      .filter((row) =>
+        query.funcionando !== undefined ? row.funcionando === query.funcionando : true,
+      )
+      .filter((row) => (query.livre !== undefined ? row.livre === query.livre : true));
+
+    const start = (query.page - 1) * 10;
+    const items = filtered.slice(start, start + 10);
+
+    return {
+      items,
+      page: query.page,
+      pageSize: 10,
+      total: filtered.length,
+      totalPages: Math.ceil(filtered.length / 10),
+    };
   }
 
   async save(entity: Hardware): Promise<void> {
@@ -102,8 +151,8 @@ describe('Hardwares API', () => {
 
     const listB = await request(app.getHttpServer()).get('/hardwares');
     expect(listB.status).toBe(200);
-    expect(listB.body).toHaveLength(1);
-    expect(listB.body[0].codigoPatrimonio).toBe('PAT-B');
+    expect(listB.body.items).toHaveLength(1);
+    expect(listB.body.items[0].codigoPatrimonio).toBe('PAT-B');
 
     const getCrossTenant = await request(app.getHttpServer()).get(
       `/hardwares/${createdId}`,

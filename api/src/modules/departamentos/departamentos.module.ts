@@ -5,6 +5,7 @@ import { TypeOrmDepartamentoRepository } from './infrastructure/persistence/depa
 import { DEPARTAMENTO_REPOSITORY } from './domain/repositories/departamento.repository.interface';
 import { CreateDepartamentoUseCase } from './application/use-cases/create-departamento.use-case';
 import { ListDepartamentosUseCase } from './application/use-cases/list-departamentos.use-case';
+import { ListDepartamentosPaginadoUseCase } from './application/use-cases/list-departamentos-paginado.use-case';
 import { GetDepartamentoByIdUseCase } from './application/use-cases/get-departamento-by-id.use-case';
 import { UpdateDepartamentoUseCase } from './application/use-cases/update-departamento.use-case';
 import { DeleteDepartamentoUseCase } from './application/use-cases/delete-departamento.use-case';
@@ -22,6 +23,7 @@ import { TenantModule } from '../../tenant/tenant.module';
     },
     CreateDepartamentoUseCase,
     ListDepartamentosUseCase,
+    ListDepartamentosPaginadoUseCase,
     GetDepartamentoByIdUseCase,
     UpdateDepartamentoUseCase,
     DeleteDepartamentoUseCase,

@@ -34,7 +34,15 @@ export const departamentoListQuerySchema = paginationQuerySchema.and(
   z.object({
     search: z.string().trim().min(1).optional(),
   }),
-);
+) as z.ZodType<
+  {
+    page: number;
+    pageSize: 10;
+    search?: string;
+  },
+  z.ZodTypeDef,
+  unknown
+>;
 
 export type CreateDepartamentoDto = z.infer<typeof createDepartamentoSchema>;
 export type UpdateDepartamentoDto = z.infer<typeof updateDepartamentoSchema>;

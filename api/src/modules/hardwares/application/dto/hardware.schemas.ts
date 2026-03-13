@@ -57,7 +57,17 @@ export const hardwareListQuerySchema = paginationQuerySchema.and(
     funcionando: booleanStringSchema.optional(),
     livre: booleanStringSchema.optional(),
   }),
-);
+) as z.ZodType<
+  {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    funcionando?: boolean;
+    livre?: boolean;
+  },
+  z.ZodTypeDef,
+  unknown
+>;
 
 export type CreateHardwareDto = z.infer<typeof createHardwareSchema>;
 export type UpdateHardwareDto = z.infer<typeof updateHardwareSchema>;

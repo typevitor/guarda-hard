@@ -5,6 +5,7 @@ import { TypeOrmUsuarioRepository } from './infrastructure/persistence/usuario.t
 import { USUARIO_REPOSITORY } from './domain/repositories/usuario.repository.interface';
 import { CreateUsuarioUseCase } from './application/use-cases/create-usuario.use-case';
 import { ListUsuariosUseCase } from './application/use-cases/list-usuarios.use-case';
+import { ListUsuariosPaginadoUseCase } from './application/use-cases/list-usuarios-paginado.use-case';
 import { GetUsuarioByIdUseCase } from './application/use-cases/get-usuario-by-id.use-case';
 import { UpdateUsuarioUseCase } from './application/use-cases/update-usuario.use-case';
 import { DeleteUsuarioUseCase } from './application/use-cases/delete-usuario.use-case';
@@ -22,6 +23,7 @@ import { TenantModule } from '../../tenant/tenant.module';
     },
     CreateUsuarioUseCase,
     ListUsuariosUseCase,
+    ListUsuariosPaginadoUseCase,
     GetUsuarioByIdUseCase,
     UpdateUsuarioUseCase,
     DeleteUsuarioUseCase,
