@@ -1,13 +1,46 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+const refreshMock = vi.fn();
+const pushMock = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    refresh: refreshMock,
+    push: pushMock,
+  }),
+  usePathname: () => "/departamentos",
+}));
+
 import { DepartamentosPage } from "./departamentos-page";
 
 describe("DepartamentosPage", () => {
-  it("shows success feedback after successful submit", async () => {
+  const baseList = {
+    items: [{ id: "dep-1", empresaId: "emp-1", nome: "Financeiro", createdAt: "", updatedAt: "" }],
+    page: 2,
+    pageSize: 10,
+    total: 11,
+    totalPages: 4,
+  };
+
+  const baseQuery = {
+    page: 2,
+    pageSize: 10 as const,
+    search: "",
+  };
+
+  beforeEach(() => {
+    refreshMock.mockReset();
+    pushMock.mockReset();
+  });
+
+  it("opens modal with New and shows success feedback after submit", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 
-    render(<DepartamentosPage onSubmit={onSubmit} />);
+    render(<DepartamentosPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "New" }));
+    expect(screen.getByRole("dialog", { name: "Novo departamento" })).toBeTruthy();
 
     fireEvent.change(screen.getByLabelText("Nome"), {
       target: { value: "Financeiro" },
@@ -18,30 +51,44 @@ describe("DepartamentosPage", () => {
       expect(onSubmit).toHaveBeenCalledWith({ nome: "Financeiro" });
     });
     expect(await screen.findByText("Departamento criado com sucesso")).toBeTruthy();
+    expect(refreshMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("dialog", { name: "Novo departamento" })).toBeNull();
   });
 
-  it("shows error feedback and clears stale success on failure", async () => {
-    const onSubmit = vi
-      .fn()
-      .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error("network"));
+  it("keeps modal open and preserves input on failure", async () => {
+    const onSubmit = vi.fn().mockRejectedValue(new Error("network"));
 
-    render(<DepartamentosPage onSubmit={onSubmit} />);
+    render(<DepartamentosPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
 
-    fireEvent.change(screen.getByLabelText("Nome"), {
-      target: { value: "Financeiro" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Salvar departamento" }));
-    expect(await screen.findByText("Departamento criado com sucesso")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "New" }));
 
     fireEvent.change(screen.getByLabelText("Nome"), {
-      target: { value: "Juridico" },
+      target: { value: "Suporte" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Salvar departamento" }));
 
     expect(await screen.findByText("Nao foi possivel criar departamento")).toBeTruthy();
-    await waitFor(() => {
-      expect(screen.queryByText("Departamento criado com sucesso")).toBeNull();
+    expect(screen.getByRole("dialog", { name: "Novo departamento" })).toBeTruthy();
+    expect((screen.getByLabelText("Nome") as HTMLInputElement).value).toBe("Suporte");
+  });
+
+  it("resets page to 1 on filter change and preserves filters on pagination", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <DepartamentosPage
+        onSubmit={onSubmit}
+        list={baseList}
+        query={{ ...baseQuery, search: "financeiro" }}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Buscar"), {
+      target: { value: "suporte" },
     });
+    expect(pushMock).toHaveBeenCalledWith("/departamentos?page=1&search=suporte");
+
+    fireEvent.click(screen.getByRole("button", { name: "Proxima pagina" }));
+    expect(pushMock).toHaveBeenCalledWith("/departamentos?page=2&search=suporte");
   });
 });
