@@ -1,7 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { vi } from 'vitest';
-import { Departamento, Emprestimo, Hardware, Usuario } from '../../entities';
+import { DepartamentoOrmEntity } from '../../modules/departamentos/infrastructure/persistence/departamento.orm-entity';
+import { EmprestimoOrmEntity } from '../../modules/emprestimos/infrastructure/persistence/emprestimo.orm-entity';
+import { HardwareOrmEntity } from '../../modules/hardwares/infrastructure/persistence/hardware.orm-entity';
+import { UsuarioOrmEntity } from '../../modules/usuarios/infrastructure/persistence/usuario.orm-entity';
 import { AppModule } from '../../app.module';
 import { TenantSubscriber } from '../../tenant/infrastructure/tenant.subscriber';
 
@@ -12,7 +15,12 @@ vi.mock('./data-source', async () => {
     AppDataSource: new TypeOrmDataSource({
       type: 'better-sqlite3',
       database: ':memory:',
-      entities: [Departamento, Usuario, Hardware, Emprestimo],
+      entities: [
+        DepartamentoOrmEntity,
+        UsuarioOrmEntity,
+        HardwareOrmEntity,
+        EmprestimoOrmEntity,
+      ],
       synchronize: true,
       logging: false,
     }),

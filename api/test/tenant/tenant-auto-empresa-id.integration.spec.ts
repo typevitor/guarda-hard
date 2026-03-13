@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Departamento } from '../../src/entities';
+import { randomUUID } from 'node:crypto';
+import { DepartamentoOrmEntity } from '../../src/modules/departamentos/infrastructure/persistence/departamento.orm-entity';
 import { TenantContext, TenantSubscriber } from '../../src/tenant';
 import { createTenantTestDataSource } from './tenant-test-data-source';
 
@@ -22,11 +23,14 @@ describe('tenant integration - auto empresa_id', () => {
     const tenantContext = new TenantContext();
     initializedDataSource.subscribers.push(new TenantSubscriber(tenantContext));
 
-    const repository = initializedDataSource.getRepository(Departamento);
+    const repository = initializedDataSource.getRepository(
+      DepartamentoOrmEntity,
+    );
 
     const saved = await tenantContext.run('empresa-1', async () =>
       repository.save(
         repository.create({
+          id: randomUUID(),
           nome: 'Suporte',
         }),
       ),

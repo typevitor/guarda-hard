@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Departamento } from '../../src/entities';
+import { randomUUID } from 'node:crypto';
+import { DepartamentoOrmEntity } from '../../src/modules/departamentos/infrastructure/persistence/departamento.orm-entity';
 import { TenantContext, TenantRepository } from '../../src/tenant';
 import { createTenantTestDataSource } from './tenant-test-data-source';
 
@@ -19,14 +20,24 @@ describe('tenant integration - read isolation', () => {
     const initializedDataSource = await createTenantTestDataSource();
     dataSource = initializedDataSource;
 
-    const repository = initializedDataSource.getRepository(Departamento);
+    const repository = initializedDataSource.getRepository(
+      DepartamentoOrmEntity,
+    );
     await repository.save([
-      repository.create({ empresa_id: 'empresa-1', nome: 'Suporte' }),
-      repository.create({ empresa_id: 'empresa-2', nome: 'Financeiro' }),
+      repository.create({
+        id: randomUUID(),
+        empresa_id: 'empresa-1',
+        nome: 'Suporte',
+      }),
+      repository.create({
+        id: randomUUID(),
+        empresa_id: 'empresa-2',
+        nome: 'Financeiro',
+      }),
     ]);
 
     const tenantContext = new TenantContext();
-    const tenantRepository = new TenantRepository<Departamento>(
+    const tenantRepository = new TenantRepository<DepartamentoOrmEntity>(
       repository,
       tenantContext,
     );

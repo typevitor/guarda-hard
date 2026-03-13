@@ -4,12 +4,10 @@ import os from 'node:os';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import { DataSource } from 'typeorm';
-import {
-  Departamento,
-  Emprestimo,
-  Hardware,
-  Usuario,
-} from '../../src/entities';
+import { DepartamentoOrmEntity } from '../../src/modules/departamentos/infrastructure/persistence/departamento.orm-entity';
+import { EmprestimoOrmEntity } from '../../src/modules/emprestimos/infrastructure/persistence/emprestimo.orm-entity';
+import { HardwareOrmEntity } from '../../src/modules/hardwares/infrastructure/persistence/hardware.orm-entity';
+import { UsuarioOrmEntity } from '../../src/modules/usuarios/infrastructure/persistence/usuario.orm-entity';
 import { CreateEtapa2Schema1773327116742 } from '../../src/infrastructure/database/migrations/1773327116742-CreateEtapa2Schema';
 
 type TableRow = { name: string };
@@ -54,7 +52,12 @@ describe('schema migrations', () => {
       dataSource = new DataSource({
         type: 'better-sqlite3',
         database: testDbPath,
-        entities: [Departamento, Usuario, Hardware, Emprestimo],
+        entities: [
+          DepartamentoOrmEntity,
+          UsuarioOrmEntity,
+          HardwareOrmEntity,
+          EmprestimoOrmEntity,
+        ],
         migrations: [CreateEtapa2Schema1773327116742],
         synchronize: false,
         logging: false,

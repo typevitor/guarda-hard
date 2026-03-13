@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Departamento } from '../../src/entities';
+import { randomUUID } from 'node:crypto';
+import { DepartamentoOrmEntity } from '../../src/modules/departamentos/infrastructure/persistence/departamento.orm-entity';
 import {
   CrossTenantAccessError,
   TenantContext,
@@ -22,15 +23,19 @@ describe('Domain integration - multi tenant isolation', () => {
     await dataSource.initialize();
     dataSource.subscribers.push(new TenantSubscriber(tenantContext));
 
-    const rawRepo = dataSource.getRepository(Departamento);
+    const rawRepo = dataSource.getRepository(DepartamentoOrmEntity);
     const tenantRepo = new TenantRepository(rawRepo, tenantContext);
 
     await tenantContext.run('empresa-a', async () => {
-      await rawRepo.save(rawRepo.create({ nome: 'Suporte A' }));
+      await rawRepo.save(
+        rawRepo.create({ id: randomUUID(), nome: 'Suporte A' }),
+      );
     });
 
     await tenantContext.run('empresa-b', async () => {
-      await rawRepo.save(rawRepo.create({ nome: 'Suporte B' }));
+      await rawRepo.save(
+        rawRepo.create({ id: randomUUID(), nome: 'Suporte B' }),
+      );
     });
 
     await tenantContext.run('empresa-a', async () => {
@@ -45,13 +50,15 @@ describe('Domain integration - multi tenant isolation', () => {
     await dataSource.initialize();
     dataSource.subscribers.push(new TenantSubscriber(tenantContext));
 
-    const rawRepo = dataSource.getRepository(Departamento);
+    const rawRepo = dataSource.getRepository(DepartamentoOrmEntity);
     const tenantRepo = new TenantRepository(rawRepo, tenantContext);
 
     const departamentoTenantB = await tenantContext.run(
       'empresa-b',
       async () => {
-        return rawRepo.save(rawRepo.create({ nome: 'Comercial B' }));
+        return rawRepo.save(
+          rawRepo.create({ id: randomUUID(), nome: 'Comercial B' }),
+        );
       },
     );
 

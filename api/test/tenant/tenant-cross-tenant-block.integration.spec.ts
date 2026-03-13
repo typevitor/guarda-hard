@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Departamento } from '../../src/entities';
+import { randomUUID } from 'node:crypto';
+import { DepartamentoOrmEntity } from '../../src/modules/departamentos/infrastructure/persistence/departamento.orm-entity';
 import {
   CrossTenantAccessError,
   TenantContext,
@@ -26,11 +27,14 @@ describe('tenant integration - cross-tenant update block', () => {
     const tenantContext = new TenantContext();
     initializedDataSource.subscribers.push(new TenantSubscriber(tenantContext));
 
-    const repository = initializedDataSource.getRepository(Departamento);
+    const repository = initializedDataSource.getRepository(
+      DepartamentoOrmEntity,
+    );
 
     const otherTenantRow = await tenantContext.run('empresa-2', async () =>
       repository.save(
         repository.create({
+          id: randomUUID(),
           nome: 'Financeiro',
         }),
       ),

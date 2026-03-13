@@ -7,6 +7,22 @@ vi.mock('../infrastructure/database/database.module', () => ({
   DatabaseModule: class DatabaseModule {},
 }));
 
+vi.mock('../modules/hardwares/hardwares.module', () => ({
+  HardwaresModule: class HardwaresModule {},
+}));
+
+vi.mock('../modules/emprestimos/emprestimos.module', () => ({
+  EmprestimosModule: class EmprestimosModule {},
+}));
+
+vi.mock('../modules/departamentos/departamentos.module', () => ({
+  DepartamentosModule: class DepartamentosModule {},
+}));
+
+vi.mock('../modules/usuarios/usuarios.module', () => ({
+  UsuariosModule: class UsuariosModule {},
+}));
+
 describe('TenantModule wiring', () => {
   it('resolves TenantContext from AppModule', async () => {
     const moduleRef = await Test.createTestingModule({

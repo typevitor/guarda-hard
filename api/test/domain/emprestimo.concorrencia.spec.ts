@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { randomUUID } from 'node:crypto';
 import { OptimisticLockVersionMismatchError } from 'typeorm';
-import {
-  Departamento,
-  Emprestimo,
-  Hardware,
-  Usuario,
-} from '../../src/entities';
+import { DepartamentoOrmEntity } from '../../src/modules/departamentos/infrastructure/persistence/departamento.orm-entity';
+import { EmprestimoOrmEntity } from '../../src/modules/emprestimos/infrastructure/persistence/emprestimo.orm-entity';
+import { HardwareOrmEntity } from '../../src/modules/hardwares/infrastructure/persistence/hardware.orm-entity';
+import { UsuarioOrmEntity } from '../../src/modules/usuarios/infrastructure/persistence/usuario.orm-entity';
 import { createDomainTestDataSource } from './domain-test-data-source';
 
 describe('Domain concurrency - emprestimo', () => {
@@ -20,17 +19,22 @@ describe('Domain concurrency - emprestimo', () => {
   it('rejects second stale loan attempt using optimistic lock', async () => {
     await dataSource.initialize();
 
-    const departamentoRepo = dataSource.getRepository(Departamento);
-    const usuarioRepo = dataSource.getRepository(Usuario);
-    const hardwareRepo = dataSource.getRepository(Hardware);
-    const emprestimoRepo = dataSource.getRepository(Emprestimo);
+    const departamentoRepo = dataSource.getRepository(DepartamentoOrmEntity);
+    const usuarioRepo = dataSource.getRepository(UsuarioOrmEntity);
+    const hardwareRepo = dataSource.getRepository(HardwareOrmEntity);
+    const emprestimoRepo = dataSource.getRepository(EmprestimoOrmEntity);
 
     const departamento = await departamentoRepo.save(
-      departamentoRepo.create({ empresa_id: 'empresa-a', nome: 'Suporte' }),
+      departamentoRepo.create({
+        id: randomUUID(),
+        empresa_id: 'empresa-a',
+        nome: 'Suporte',
+      }),
     );
 
     const usuario = await usuarioRepo.save(
       usuarioRepo.create({
+        id: randomUUID(),
         empresa_id: 'empresa-a',
         departamento_id: departamento.id,
         nome: 'Usuario A',
@@ -41,6 +45,7 @@ describe('Domain concurrency - emprestimo', () => {
 
     const hardware = await hardwareRepo.save(
       hardwareRepo.create({
+        id: randomUUID(),
         empresa_id: 'empresa-a',
         descricao: 'Notebook',
         marca: 'Lenovo',
@@ -60,12 +65,16 @@ describe('Domain concurrency - emprestimo', () => {
       .where('hardware.id = :id', { id: hardware.id })
       .getOneOrFail();
 
-    const emprestimoOk = Emprestimo.emprestar({
+    // Replaces old Emprestimo.emprestar() domain method: mark hardware as not free
+    hardwarePrimeiraTentativa.livre = false;
+
+    const emprestimoOk = emprestimoRepo.create({
+      id: randomUUID(),
       empresa_id: 'empresa-a',
       usuario_id: usuario.id,
       hardware_id: hardware.id,
-      hardware: hardwarePrimeiraTentativa,
       data_retirada: new Date('2026-03-12T10:00:00.000Z'),
+      data_devolucao: null,
     });
 
     await hardwareRepo.save(hardwarePrimeiraTentativa);
