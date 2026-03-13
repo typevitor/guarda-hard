@@ -28,4 +28,8 @@ export class Departamento extends DomainEntity {
   get nome(): string {
     return this._nome;
   }
+
+  renomear(nome: string): void {
+    this._nome = nome;
+  }
 }

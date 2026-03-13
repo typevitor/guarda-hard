@@ -504,15 +504,15 @@ Tarefas paralelas:
 
 # Etapa 6 — API
 
-- [ ] Criar controllers
-- [ ] Criar services
-- [ ] Implementar CRUD departamentos
-- [ ] Implementar CRUD usuários
-- [ ] Implementar CRUD hardwares
-- [ ] Implementar endpoint empréstimo
-- [ ] Implementar endpoint devolução
-- [ ] Implementar endpoint defeito
-- [ ] Implementar endpoint conserto
+- [x] Criar controllers
+- [x] Criar services
+- [x] Implementar CRUD departamentos
+- [x] Implementar CRUD usuários
+- [x] Implementar CRUD hardwares
+- [x] Implementar endpoint empréstimo
+- [x] Implementar endpoint devolução
+- [x] Implementar endpoint defeito
+- [x] Implementar endpoint conserto
 
 Tarefas paralelas:
 

@@ -51,4 +51,22 @@ export class Usuario extends DomainEntity {
   get ativo(): boolean {
     return this._ativo;
   }
+
+  atualizarPerfil(props: {
+    nome?: string;
+    email?: string;
+    ativo?: boolean;
+  }): void {
+    if (props.nome !== undefined) {
+      this._nome = props.nome;
+    }
+
+    if (props.email !== undefined) {
+      this._email = props.email;
+    }
+
+    if (props.ativo !== undefined) {
+      this._ativo = props.ativo;
+    }
+  }
 }

@@ -113,4 +113,27 @@ export class Hardware extends DomainEntity {
   get livre(): boolean {
     return this._livre;
   }
+
+  atualizarCadastro(props: {
+    descricao?: string;
+    marca?: string;
+    modelo?: string;
+    codigoPatrimonio?: string;
+  }): void {
+    if (props.descricao !== undefined) {
+      this._descricao = props.descricao;
+    }
+
+    if (props.marca !== undefined) {
+      this._marca = props.marca;
+    }
+
+    if (props.modelo !== undefined) {
+      this._modelo = props.modelo;
+    }
+
+    if (props.codigoPatrimonio !== undefined) {
+      this._codigoPatrimonio = props.codigoPatrimonio;
+    }
+  }
 }
