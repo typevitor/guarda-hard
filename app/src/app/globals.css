@@ -142,6 +142,34 @@ body {
   color: var(--foreground-muted);
 }
 
+.dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.status-card {
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: linear-gradient(180deg, var(--surface), var(--surface-muted));
+  padding: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.status-card-label {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--foreground-muted);
+}
+
+.status-card-value {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-strong);
+}
+
 .desktop-only {
   display: block;
 }
@@ -161,5 +189,9 @@ body {
 
   .mobile-only {
     display: block;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
 }
