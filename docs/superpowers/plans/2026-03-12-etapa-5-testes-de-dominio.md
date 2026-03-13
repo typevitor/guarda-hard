@@ -1,5 +1,9 @@
 # Etapa 5 - Testes de Dominio Implementation Plan
 
+> **Status update (2026-03-13):** This plan is superseded by the approved DDD refactor direction in `docs/architecture.md` and `docs/superpowers/specs/2026-03-12-ddd-clean-architecture-refactor-design.md`.
+>
+> Do not use `api/src/entities` as the canonical location for current domain/entity tests. Use feature modules under `api/src/modules/<feature>/domain` and feature-scoped tests aligned to that structure.
+
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Implement Etapa 5 with complete domain test coverage for emprestimo lifecycle, defeito/conserto flows, optimistic concurrency, and multi-tenant isolation.

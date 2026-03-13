@@ -6,4 +6,5 @@ allowBuilds:
   '@nestjs/core': false
   better-sqlite3: true
   esbuild: false
+  sharp: false
   unrs-resolver: false

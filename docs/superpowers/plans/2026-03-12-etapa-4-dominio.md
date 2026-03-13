@@ -1,5 +1,9 @@
 # Etapa 4 - Dominio Implementation Plan
 
+> **Status update (2026-03-13):** This plan is superseded by the approved DDD refactor direction in `docs/architecture.md` and `docs/superpowers/specs/2026-03-12-ddd-clean-architecture-refactor-design.md`.
+>
+> Do not use `api/src/entities` as the canonical location for current domain/entity work. Use feature modules under `api/src/modules/<feature>/domain` and `api/src/modules/<feature>/infrastructure/persistence`.
+
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Implement Etapa 4 domain behavior so loan, return, defect, and repair rules are enforced directly in entities with focused tests.

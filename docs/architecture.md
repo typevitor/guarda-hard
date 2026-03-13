@@ -43,7 +43,11 @@ Use a modular monolith with feature modules and clear internal layering.
 
 Recommended dependency direction:
 
-`controllers / route handlers -> application layer -> domain layer -> infrastructure adapters`
+`presentation -> application -> domain`
+
+Implementation dependency rule:
+
+`infrastructure -> application/domain contracts`
 
 The domain layer may define interfaces consumed by the application layer and implemented by infrastructure. Infrastructure must never contain core business decisions.
 
@@ -66,7 +70,6 @@ api/src
     infrastructure/
       tenant.subscriber.ts
       tenant.repository.ts
-      tenant-request.store.ts
   modules/
     auth/
       auth.module.ts
@@ -171,7 +174,7 @@ Tenant isolation must be implemented as infrastructure plus application policy, 
 Recommended split:
 
 - `tenant/application/tenant-context.ts`: current tenant contract used by use cases.
-- `tenant/infrastructure/tenant-request.store.ts`: request-scoped or async-context-backed tenant storage populated from JWT.
+- `tenant/application/tenant-context.ts` is AsyncLocalStorage-backed and populated from authenticated request context (for example, JWT claims middleware/guard).
 - `tenant/infrastructure/tenant.subscriber.ts`: injects `empresa_id` on inserts and rejects invalid cross-tenant updates.
 - `tenant/infrastructure/tenant.repository.ts`: base repository behavior that automatically scopes tenant-aware queries.
 
