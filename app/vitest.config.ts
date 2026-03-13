@@ -1,6 +1,13 @@
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'node:path';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@guarda-hard/schemas': resolve(__dirname, '../packages/schemas/src/index.ts'),
+      '@guarda-hard/types': resolve(__dirname, '../packages/types/src/index.ts'),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
