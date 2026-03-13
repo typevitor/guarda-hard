@@ -524,8 +524,8 @@ Tarefas paralelas:
 
 # Etapa 7 — Frontend
 
-- [ ] Criar layout base
-- [ ] Criar menu
+- [x] Criar layout base
+- [x] Criar menu
 - [ ] Criar dashboard
 - [ ] Criar página departamentos
 - [ ] Criar página usuários
