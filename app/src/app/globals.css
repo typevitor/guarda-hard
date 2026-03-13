@@ -142,6 +142,157 @@ body {
   color: var(--foreground-muted);
 }
 
+.list-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.list-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.list-page-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  border: 1px solid var(--primary-strong);
+  background: var(--primary);
+  color: #fff;
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.9rem;
+  font-weight: 700;
+}
+
+.btn-primary:hover {
+  background: var(--primary-strong);
+}
+
+.btn-ghost {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  border-radius: 0.6rem;
+  padding: 0.5rem 0.8rem;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: linear-gradient(180deg, var(--surface), var(--surface-muted));
+}
+
+.filter-label {
+  font-weight: 600;
+}
+
+.filter-bar input {
+  min-width: 220px;
+  flex: 1;
+}
+
+.list-table-shell {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+}
+
+.list-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.list-table th,
+.list-table td {
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.list-table th {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground-muted);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.pagination-label {
+  margin: 0;
+  color: var(--foreground-muted);
+}
+
+.feedback-banner {
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid;
+}
+
+.feedback-success {
+  border-color: #46a06f;
+  background: #ebf7ef;
+  color: #1e6c43;
+}
+
+.feedback-error {
+  border-color: #d06f5f;
+  background: #fff0ed;
+  color: #9f2f22;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 36, 0.44);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 40;
+}
+
+.modal-shell {
+  width: min(620px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  box-shadow: var(--shadow);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modal-content {
+  padding: 1rem;
+}
+
 .dashboard-grid {
   display: grid;
   gap: 1rem;
