@@ -526,7 +526,7 @@ Tarefas paralelas:
 
 - [x] Criar layout base
 - [x] Criar menu
-- [ ] Criar dashboard
+- [x] Criar dashboard
 - [ ] Criar página departamentos
 - [ ] Criar página usuários
 - [ ] Criar página hardwares
