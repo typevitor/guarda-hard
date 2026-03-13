@@ -4,16 +4,29 @@ import { useState } from "react";
 
 import {
   DepartamentoForm,
-  type DepartamentoFormValues,
 } from "../forms/departamento-form";
-import { createDepartamento } from "../server/departamentos-api";
+import type { DepartamentoPayload } from "../schemas/departamento-schema";
 
-export function DepartamentosPage() {
-  const [status, setStatus] = useState<string | null>(null);
+type DepartamentosPageProps = {
+  onSubmit: (values: DepartamentoPayload) => Promise<void>;
+};
 
-  const handleSubmit = async (values: DepartamentoFormValues) => {
-    await createDepartamento(values);
-    setStatus("Departamento criado com sucesso");
+export function DepartamentosPage({ onSubmit }: DepartamentosPageProps) {
+  const [status, setStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const handleSubmit = async (values: DepartamentoPayload): Promise<void> => {
+    setStatus(null);
+
+    try {
+      await onSubmit(values);
+      setStatus({ type: "success", message: "Departamento criado com sucesso" });
+    } catch {
+      setStatus({ type: "error", message: "Nao foi possivel criar departamento" });
+      throw new Error("submit failed");
+    }
   };
 
   return (
@@ -21,7 +34,7 @@ export function DepartamentosPage() {
       <h2 className="panel-title">Departamentos</h2>
       <p className="panel-text">Cadastre os departamentos disponiveis para vinculacao.</p>
       <DepartamentoForm onSubmit={handleSubmit} />
-      {status ? <p>{status}</p> : null}
+      {status ? <p role="status">{status.message}</p> : null}
     </section>
   );
 }

@@ -2,16 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-const departamentoFormSchema = z.object({
-  nome: z.string().trim().min(1, "Nome e obrigatorio"),
-});
-
-export type DepartamentoFormValues = z.infer<typeof departamentoFormSchema>;
+import {
+  departamentoSchema,
+  type DepartamentoPayload,
+} from "../schemas/departamento-schema";
 
 type DepartamentoFormProps = {
-  onSubmit: (values: DepartamentoFormValues) => void | Promise<void>;
+  onSubmit: (values: DepartamentoPayload) => Promise<void>;
 };
 
 export function DepartamentoForm({ onSubmit }: DepartamentoFormProps) {
@@ -20,8 +17,8 @@ export function DepartamentoForm({ onSubmit }: DepartamentoFormProps) {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<DepartamentoFormValues>({
-    resolver: zodResolver(departamentoFormSchema),
+  } = useForm<DepartamentoPayload>({
+    resolver: zodResolver(departamentoSchema),
     defaultValues: {
       nome: "",
     },
@@ -31,8 +28,12 @@ export function DepartamentoForm({ onSubmit }: DepartamentoFormProps) {
     <form
       className="departamento-form"
       onSubmit={handleSubmit(async (values) => {
-        await onSubmit(values);
-        reset();
+        try {
+          await onSubmit(values);
+          reset();
+        } catch {
+          return;
+        }
       })}
     >
       <div className="form-field">
