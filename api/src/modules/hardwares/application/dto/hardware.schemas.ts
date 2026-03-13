@@ -1,5 +1,23 @@
 import { z } from 'zod';
 
+const paginationQuerySchema = z
+  .object({
+    page: z.union([z.string(), z.number()]).optional(),
+    pageSize: z.union([z.string(), z.number()]).optional(),
+  })
+  .transform(({ page }) => {
+    const parsed = Number(page);
+
+    return {
+      page: Number.isInteger(parsed) && parsed > 0 ? parsed : 1,
+      pageSize: 10 as const,
+    };
+  });
+
+const booleanStringSchema = z
+  .enum(['true', 'false'])
+  .transform((value) => value === 'true');
+
 export const createHardwareSchema = z.object({
   descricao: z.string().trim().min(1),
   marca: z.string().trim().min(1),
@@ -33,7 +51,16 @@ export const hardwareIdParamSchema = z.object({
   id: z.string().uuid(),
 });
 
+export const hardwareListQuerySchema = paginationQuerySchema.and(
+  z.object({
+    search: z.string().trim().min(1).optional(),
+    funcionando: booleanStringSchema.optional(),
+    livre: booleanStringSchema.optional(),
+  }),
+);
+
 export type CreateHardwareDto = z.infer<typeof createHardwareSchema>;
 export type UpdateHardwareDto = z.infer<typeof updateHardwareSchema>;
 export type MarcarDefeitoDto = z.infer<typeof marcarDefeitoSchema>;
 export type HardwareIdParamDto = z.infer<typeof hardwareIdParamSchema>;
+export type HardwareListQueryDto = z.infer<typeof hardwareListQuerySchema>;

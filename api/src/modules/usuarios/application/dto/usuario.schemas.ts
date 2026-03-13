@@ -1,5 +1,23 @@
 import { z } from 'zod';
 
+const paginationQuerySchema = z
+  .object({
+    page: z.union([z.string(), z.number()]).optional(),
+    pageSize: z.union([z.string(), z.number()]).optional(),
+  })
+  .transform(({ page }) => {
+    const parsed = Number(page);
+
+    return {
+      page: Number.isInteger(parsed) && parsed > 0 ? parsed : 1,
+      pageSize: 10 as const,
+    };
+  });
+
+const booleanStringSchema = z
+  .enum(['true', 'false'])
+  .transform((value) => value === 'true');
+
 export const createUsuarioSchema = z.object({
   departamentoId: z.string().uuid(),
   nome: z.string().trim().min(1),
@@ -26,6 +44,15 @@ export const usuarioIdParamSchema = z.object({
   id: z.string().uuid(),
 });
 
+export const usuarioListQuerySchema = paginationQuerySchema.and(
+  z.object({
+    search: z.string().trim().min(1).optional(),
+    departamentoId: z.string().uuid().optional(),
+    ativo: booleanStringSchema.optional(),
+  }),
+);
+
 export type CreateUsuarioDto = z.infer<typeof createUsuarioSchema>;
 export type UpdateUsuarioDto = z.infer<typeof updateUsuarioSchema>;
 export type UsuarioIdParamDto = z.infer<typeof usuarioIdParamSchema>;
+export type UsuarioListQueryDto = z.infer<typeof usuarioListQuerySchema>;
