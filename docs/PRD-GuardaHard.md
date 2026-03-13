@@ -533,6 +533,7 @@ Tarefas paralelas:
 - [x] Criar página empréstimo
 - [x] Criar página devolução
 - [x] Criar página relatórios
+- [x] Padronizar páginas de listagem com modal de criação (departamentos, usuarios, hardwares, emprestimo, devolucao)
 
 Tarefas paralelas:
 
