@@ -93,9 +93,7 @@ describe("getRelatorioResultado", () => {
 
     const { getRelatorioResultado } = await loadModule();
 
-    await expect(getRelatorioResultado(filtros)).rejects.toThrow(
-      "Nao foi possivel carregar relatorios",
-    );
+    await expect(getRelatorioResultado(filtros)).rejects.toThrow("erro");
   });
 });
 

@@ -1,24 +1,15 @@
-import { cookies } from "next/headers";
+import { apiClient } from "@/lib/api/client";
 
 import { usuarioSchema, type UsuarioPayload } from "../schemas/usuario-schema";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
 export async function createUsuarioServer(payload: UsuarioPayload): Promise<void> {
   const parsedPayload = usuarioSchema.parse(payload);
-  const cookieHeader = (await cookies()).toString();
 
-  const response = await fetch(`${API_BASE_URL}/usuarios`, {
+  await apiClient({
+    path: "/usuarios",
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-    },
-    body: JSON.stringify(parsedPayload),
-    cache: "no-store",
+    body: parsedPayload,
+    responseType: "void",
+    fallbackErrorMessage: "Nao foi possivel criar usuario",
   });
-
-  if (!response.ok) {
-    throw new Error("Nao foi possivel criar usuario");
-  }
 }

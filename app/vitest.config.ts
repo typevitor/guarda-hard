@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 export default defineConfig({
   resolve: {
     alias: {
+      '@': resolve(__dirname, './src'),
       '@guarda-hard/schemas': resolve(__dirname, '../packages/schemas/src/index.ts'),
       '@guarda-hard/types': resolve(__dirname, '../packages/types/src/index.ts'),
     },

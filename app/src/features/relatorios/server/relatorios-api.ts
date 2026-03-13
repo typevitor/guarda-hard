@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { apiClient } from "@/lib/api/client";
 
 import {
   buildRelatorioQueryString,
@@ -6,8 +6,6 @@ import {
   relatorioFiltrosSchema,
   type RelatorioFiltrosPayload,
 } from "../schemas/relatorio-filtros-schema";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 type HardwareApiRow = {
   id: string;
@@ -140,35 +138,22 @@ function isUsuarioMatch(emprestimo: EmprestimoApiRow | null, value: string): boo
   return emprestimo.usuarioId.toLowerCase().includes(value.toLowerCase());
 }
 
-async function fetchJson<T>(path: string, cookieHeader: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+async function fetchJson<T>(path: string): Promise<T> {
+  return apiClient<T>({
+    path,
     method: "GET",
-    headers: {
-      ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-    },
-    cache: "no-store",
+    fallbackErrorMessage: "Nao foi possivel carregar relatorios",
   });
-
-  if (!response.ok) {
-    throw new Error("Nao foi possivel carregar relatorios");
-  }
-
-  return (await response.json()) as T;
 }
 
 export async function getRelatorioResultado(
   rawFiltros: RelatorioFiltrosPayload,
 ): Promise<RelatorioResultado> {
   const filtros = relatorioFiltrosSchema.parse(rawFiltros);
-  const cookieHeader = (await cookies()).toString();
-
-  if (!cookieHeader) {
-    throw new Error("Sessao invalida para consultar relatorios");
-  }
 
   const [hardwares, emprestimos] = await Promise.all([
-    fetchJson<HardwareApiRow[]>("/hardwares", cookieHeader),
-    fetchJson<EmprestimoApiRow[]>("/emprestimos", cookieHeader),
+    fetchJson<HardwareApiRow[]>("/hardwares"),
+    fetchJson<EmprestimoApiRow[]>("/emprestimos"),
   ]);
 
   const activeEmprestimoPorHardware = new Map<string, EmprestimoApiRow>();

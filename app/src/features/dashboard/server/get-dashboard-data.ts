@@ -1,3 +1,5 @@
+import { apiClient } from "@/lib/api/client";
+
 export type DashboardHardware = {
   id: string;
   funcionando: boolean;
@@ -55,18 +57,13 @@ function parseHardwares(payload: unknown): DashboardHardware[] {
 }
 
 async function loadHardwares(): Promise<DashboardHardware[]> {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
   try {
-    const response = await fetch(`${apiBaseUrl}/hardwares`, {
-      cache: "no-store",
+    const payload = await apiClient<unknown>({
+      path: "/hardwares",
+      method: "GET",
+      fallbackErrorMessage: "Nao foi possivel carregar dashboard",
     });
 
-    if (!response.ok) {
-      return [];
-    }
-
-    const payload = (await response.json()) as unknown;
     return parseHardwares(payload);
   } catch {
     return [];

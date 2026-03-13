@@ -1,24 +1,15 @@
-import { cookies } from "next/headers";
+import { apiClient } from "@/lib/api/client";
 
 import { hardwareSchema, type HardwarePayload } from "../schemas/hardware-schema";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
 export async function createHardwareServer(payload: HardwarePayload): Promise<void> {
   const parsedPayload = hardwareSchema.parse(payload);
-  const cookieHeader = (await cookies()).toString();
 
-  const response = await fetch(`${API_BASE_URL}/hardwares`, {
+  await apiClient({
+    path: "/hardwares",
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-    },
-    body: JSON.stringify(parsedPayload),
-    cache: "no-store",
+    body: parsedPayload,
+    responseType: "void",
+    fallbackErrorMessage: "Nao foi possivel criar hardware",
   });
-
-  if (!response.ok) {
-    throw new Error("Nao foi possivel criar hardware");
-  }
 }
