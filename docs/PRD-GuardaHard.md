@@ -528,7 +528,7 @@ Tarefas paralelas:
 - [x] Criar menu
 - [x] Criar dashboard
 - [x] Criar página departamentos
-- [ ] Criar página usuários
+- [x] Criar página usuários
 - [ ] Criar página hardwares
 - [ ] Criar página empréstimo
 - [ ] Criar página devolução
