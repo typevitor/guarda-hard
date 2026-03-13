@@ -78,7 +78,6 @@ api/src
       application/
         use-cases/
         dto/
-        mappers/
       domain/
         entities/
         repositories/
@@ -140,6 +139,7 @@ Contains concrete adapters.
 
 - TypeORM entities and mappings.
 - Repository implementations.
+- Mappers between ORM entities and domain entities.
 - Query builders for reporting or search.
 - Integration with auth, files, messaging, or external APIs.
 
@@ -148,6 +148,7 @@ Rules:
 - Translate between persistence models and domain models.
 - Keep ORM-specific decorators here instead of leaking them into the domain.
 - Optimize read queries here, not in controllers.
+- Place mappers in `infrastructure/persistence/` alongside ORM entities, not in `application/`. The mapper's primary dependency is the ORM entity (infrastructure concern), and placing mappers in `application/` would create an inward dependency violation (application depending on infrastructure).
 
 #### `modules/<feature>/presentation`
 

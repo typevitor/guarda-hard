@@ -1767,16 +1767,16 @@ git commit -m "refactor(api): remove old flat entities/ folder, complete DDD res
 
 - Modify: `docs/architecture.md` (update mapper placement note)
 
-- [ ] **Step 1: Run full test suite one more time**
+- [x] **Step 1: Run full test suite one more time**
 
 Run: `pnpm --filter api exec vitest run`
 Expected: All tests PASS
 
-- [ ] **Step 2: Update architecture.md mapper placement**
+- [x] **Step 2: Update architecture.md mapper placement**
 
 Add a note in `docs/architecture.md` in the `modules/<feature>/infrastructure` section that mappers live in `infrastructure/persistence/` (not `application/mappers/`), with the rationale from the spec.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/architecture.md

@@ -27,7 +27,7 @@ export class TypeOrmDepartamentoRepository implements IDepartamentoRepository {
   async findAll(): Promise<Departamento[]> {
     const empresaId = this.tenantContext.requireEmpresaId();
     const orms = await this.ormRepo.find({ where: { empresa_id: empresaId } });
-    return orms.map(DepartamentoMapper.toDomain);
+    return orms.map((orm) => DepartamentoMapper.toDomain(orm));
   }
 
   async save(departamento: Departamento): Promise<void> {

@@ -29,7 +29,7 @@ export class TypeOrmHardwareRepository implements IHardwareRepository {
     const orms = await this.ormRepo.find({
       where: { empresa_id: empresaId },
     });
-    return orms.map(HardwareMapper.toDomain);
+    return orms.map((orm) => HardwareMapper.toDomain(orm));
   }
 
   async save(hardware: Hardware): Promise<void> {

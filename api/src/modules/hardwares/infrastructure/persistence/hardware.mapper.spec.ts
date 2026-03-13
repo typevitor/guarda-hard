@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { HardwareMapper } from './hardware.mapper';
-import { Hardware } from '../../domain/entities/hardware.entity';
 import { HardwareOrmEntity } from './hardware.orm-entity';
 
 describe('HardwareMapper', () => {

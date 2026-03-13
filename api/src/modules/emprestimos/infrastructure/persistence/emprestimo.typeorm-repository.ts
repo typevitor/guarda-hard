@@ -27,7 +27,7 @@ export class TypeOrmEmprestimoRepository implements IEmprestimoRepository {
   async findAll(): Promise<Emprestimo[]> {
     const empresaId = this.tenantContext.requireEmpresaId();
     const orms = await this.ormRepo.find({ where: { empresa_id: empresaId } });
-    return orms.map(EmprestimoMapper.toDomain);
+    return orms.map((orm) => EmprestimoMapper.toDomain(orm));
   }
 
   async save(emprestimo: Emprestimo): Promise<void> {

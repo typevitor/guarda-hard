@@ -27,7 +27,7 @@ export class TypeOrmUsuarioRepository implements IUsuarioRepository {
   async findAll(): Promise<Usuario[]> {
     const empresaId = this.tenantContext.requireEmpresaId();
     const orms = await this.ormRepo.find({ where: { empresa_id: empresaId } });
-    return orms.map(UsuarioMapper.toDomain);
+    return orms.map((orm) => UsuarioMapper.toDomain(orm));
   }
 
   async save(usuario: Usuario): Promise<void> {
