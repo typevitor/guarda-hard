@@ -1,8 +1,8 @@
-export default function DashboardPage() {
-  return (
-    <div className="panel-card">
-      <h2 className="panel-title">Dashboard</h2>
-      <p className="panel-text">Bem-vindo ao painel do GuardaHard.</p>
-    </div>
-  );
+import { DashboardPage } from "@/features/dashboard/components/dashboard-page";
+import { getDashboardData } from "@/features/dashboard/server/get-dashboard-data";
+
+export default async function DashboardRoutePage() {
+  const data = await getDashboardData();
+
+  return <DashboardPage data={data} />;
 }
