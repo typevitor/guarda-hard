@@ -144,6 +144,7 @@ describe('Emprestimos listing API', () => {
       departamentoId: '2cbc4f56-8c44-435a-9d06-b05f00fe5ecf',
       nome: 'Alice',
       email: 'alice@empresa.test',
+      senhaHash: 'hash-a',
     });
     const hardware = Hardware.create({
       empresaId: 'empresa-a',

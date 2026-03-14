@@ -264,6 +264,7 @@ describe('Emprestimos API', () => {
       departamentoId: '77eb2218-c1c1-4a43-ac8b-fb339eca8fcd',
       nome: 'Alice',
       email: 'alice@empresa-a.test',
+      senhaHash: 'hash-a',
     });
     const hardwareA = Hardware.create({
       empresaId: 'empresa-a',
@@ -277,6 +278,7 @@ describe('Emprestimos API', () => {
       departamentoId: '2cbc4f56-8c44-435a-9d06-b05f00fe5ecf',
       nome: 'Bob',
       email: 'bob@empresa-b.test',
+      senhaHash: 'hash-b',
     });
 
     usuarioRepo.seed(usuarioA);

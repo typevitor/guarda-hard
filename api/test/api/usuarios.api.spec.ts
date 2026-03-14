@@ -130,6 +130,7 @@ describe('Usuarios API', () => {
       departamentoId: '2c22959a-720d-4cf6-b4f9-5d6f42880d2b',
       nome: 'Alice',
       email: 'alice@empresa-a.test',
+      senhaHash: 'hash-a',
     });
 
     expect(createA.status).toBe(201);
@@ -142,6 +143,7 @@ describe('Usuarios API', () => {
       departamentoId: 'c923fb33-81b1-4565-8f74-c87f2ffbcd0b',
       nome: 'Bob',
       email: 'bob@empresa-b.test',
+      senhaHash: 'hash-b',
     });
 
     expect(createB.status).toBe(201);

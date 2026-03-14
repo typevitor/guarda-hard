@@ -39,6 +39,7 @@ describe('Domain concurrency - emprestimo', () => {
         departamento_id: departamento.id,
         nome: 'Usuario A',
         email: 'usuario.a@empresa.test',
+        senha_hash: 'hash-a',
         ativo: true,
       }),
     );
