@@ -8,7 +8,10 @@ import { EmprestimoOrmEntity } from '../../modules/emprestimos/infrastructure/pe
 
 const apiRoot = path.resolve(__dirname, '../../..');
 const databaseFilePath = path.resolve(apiRoot, 'data/guarda-hard.sqlite');
-const migrationsGlobPath = path.resolve(__dirname, './migrations/*{.ts,.js}');
+const migrationsGlobPath = path.resolve(
+  __dirname,
+  './migrations/[0-9]*{.ts,.js}',
+);
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
