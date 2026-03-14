@@ -568,3 +568,15 @@ Tarefas paralelas:
 - [ ] Todas tarefas marcadas
 - [ ] Build funcionando
 - [ ] Deploy funcional
+
+---
+
+# Etapa 11 — Autenticacao global + selecao de empresa
+
+- [ ] Task 1 - Migration global users + empresas + membership
+- [ ] Task 2 - Modulo empresas para listagem
+- [ ] Task 3 - Modulo auth com sessao em duas fases
+- [ ] Task 4 - Home de autenticacao em /
+- [ ] Task 5 - Pagina de selecao de empresa
+- [ ] Task 6 - Protecao global de rotas por fase
+- [ ] Task 7 - Verificacao final e quality gate
