@@ -578,5 +578,5 @@ Tarefas paralelas:
 - [x] Task 3 - Modulo auth com sessao em duas fases
 - [x] Task 4 - Home de autenticacao em /
 - [x] Task 5 - Pagina de selecao de empresa
-- [ ] Task 6 - Protecao global de rotas por fase
+- [x] Task 6 - Protecao global de rotas por fase
 - [ ] Task 7 - Verificacao final e quality gate
