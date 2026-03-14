@@ -9,7 +9,9 @@ describe('emprestimoListQuerySchema', () => {
     expect(emprestimoListQuerySchema.parse({ status: 'returned' }).status).toBe(
       'returned',
     );
-    expect(() => emprestimoListQuerySchema.parse({ status: 'closed' })).toThrow();
+    expect(() =>
+      emprestimoListQuerySchema.parse({ status: 'closed' }),
+    ).toThrow();
   });
 
   it('rejects invalid date filters', () => {

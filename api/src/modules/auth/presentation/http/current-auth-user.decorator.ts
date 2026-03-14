@@ -7,7 +7,9 @@ export type CurrentAuthUser = {
 
 export const CurrentAuthUserDecorator = createParamDecorator(
   (_: unknown, ctx: ExecutionContext): CurrentAuthUser => {
-    const request = ctx.switchToHttp().getRequest<{ authUser?: CurrentAuthUser }>();
+    const request = ctx
+      .switchToHttp()
+      .getRequest<{ authUser?: CurrentAuthUser }>();
     return request.authUser ?? { userId: '' };
   },
 );

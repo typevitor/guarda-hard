@@ -47,4 +47,6 @@ export const departamentoListQuerySchema = paginationQuerySchema.and(
 export type CreateDepartamentoDto = z.infer<typeof createDepartamentoSchema>;
 export type UpdateDepartamentoDto = z.infer<typeof updateDepartamentoSchema>;
 export type DepartamentoIdParamDto = z.infer<typeof departamentoIdParamSchema>;
-export type DepartamentoListQueryDto = z.infer<typeof departamentoListQuerySchema>;
+export type DepartamentoListQueryDto = z.infer<
+  typeof departamentoListQuerySchema
+>;

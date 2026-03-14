@@ -51,7 +51,10 @@ export class TypeOrmDepartamentoRepository implements IDepartamentoRepository {
       });
     }
 
-    qb.orderBy('departamento.created_at', 'DESC').addOrderBy('departamento.id', 'DESC');
+    qb.orderBy('departamento.created_at', 'DESC').addOrderBy(
+      'departamento.id',
+      'DESC',
+    );
 
     const [rows, total] = await qb
       .skip((page - 1) * pageSize)

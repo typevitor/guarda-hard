@@ -15,7 +15,11 @@ import { TenantModule } from '../../tenant/tenant.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DepartamentoOrmEntity]), TenantModule, AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([DepartamentoOrmEntity]),
+    TenantModule,
+    AuthModule,
+  ],
   controllers: [DepartamentosController],
   providers: [
     {

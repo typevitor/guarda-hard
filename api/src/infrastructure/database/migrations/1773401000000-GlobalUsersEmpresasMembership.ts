@@ -2,9 +2,7 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
 
 const TEST_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
-export class GlobalUsersEmpresasMembership1773401000000
-  implements MigrationInterface
-{
+export class GlobalUsersEmpresasMembership1773401000000 implements MigrationInterface {
   name = 'GlobalUsersEmpresasMembership1773401000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -261,7 +259,9 @@ export class GlobalUsersEmpresasMembership1773401000000
         `,
       );
       await queryRunner.query(`DROP TABLE "hardwares"`);
-      await queryRunner.query(`ALTER TABLE "hardwares_tmp" RENAME TO "hardwares"`);
+      await queryRunner.query(
+        `ALTER TABLE "hardwares_tmp" RENAME TO "hardwares"`,
+      );
 
       await queryRunner.query(
         `

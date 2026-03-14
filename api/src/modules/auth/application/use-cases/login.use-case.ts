@@ -8,7 +8,10 @@ export class LoginUseCase {
     private readonly authService: Pick<AuthService, 'login'>,
   ) {}
 
-  execute(input: { email: string; senha: string }): Promise<{ userId: string }> {
+  execute(input: {
+    email: string;
+    senha: string;
+  }): Promise<{ userId: string }> {
     return this.authService.login(input);
   }
 }

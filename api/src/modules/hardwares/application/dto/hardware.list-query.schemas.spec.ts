@@ -10,6 +10,8 @@ describe('hardwareListQuerySchema', () => {
 
     expect(parsed.funcionando).toBe(true);
     expect(parsed.livre).toBe(false);
-    expect(() => hardwareListQuerySchema.parse({ funcionando: 'yes' })).toThrow();
+    expect(() =>
+      hardwareListQuerySchema.parse({ funcionando: 'yes' }),
+    ).toThrow();
   });
 });

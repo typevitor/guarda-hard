@@ -52,9 +52,12 @@ export class TypeOrmUsuarioRepository implements IUsuarioRepository {
       .where('usuario.empresa_id = :empresaId', { empresaId });
 
     if (query.search) {
-      qb.andWhere('(LOWER(usuario.nome) LIKE :search OR LOWER(usuario.email) LIKE :search)', {
-        search: `%${query.search.toLowerCase()}%`,
-      });
+      qb.andWhere(
+        '(LOWER(usuario.nome) LIKE :search OR LOWER(usuario.email) LIKE :search)',
+        {
+          search: `%${query.search.toLowerCase()}%`,
+        },
+      );
     }
 
     if (query.departamentoId) {

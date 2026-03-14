@@ -100,7 +100,10 @@ export class TypeOrmEmprestimoRepository implements IEmprestimoRepository {
       qb.andWhere('emprestimo.data_devolucao IS NOT NULL');
     }
 
-    qb.orderBy('emprestimo.created_at', 'DESC').addOrderBy('emprestimo.id', 'DESC');
+    qb.orderBy('emprestimo.created_at', 'DESC').addOrderBy(
+      'emprestimo.id',
+      'DESC',
+    );
 
     const [rows, total] = await qb
       .skip((page - 1) * pageSize)

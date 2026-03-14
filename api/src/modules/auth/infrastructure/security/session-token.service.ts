@@ -21,7 +21,9 @@ export class SessionTokenService {
   }
 
   sign(payload: SessionPayload): string {
-    const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+      'base64url',
+    );
     const signature = this.signData(encodedPayload);
     return `${encodedPayload}.${signature}`;
   }

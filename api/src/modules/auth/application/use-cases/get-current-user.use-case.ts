@@ -8,10 +8,7 @@ export class GetCurrentUserUseCase {
     private readonly authService: Pick<AuthService, 'getCurrentUser'>,
   ) {}
 
-  execute(session: {
-    userId: string;
-    empresaId?: string;
-  }): {
+  execute(session: { userId: string; empresaId?: string }): {
     userId: string;
     empresaId?: string;
   } {
