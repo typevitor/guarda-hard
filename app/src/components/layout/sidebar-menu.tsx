@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { getApiBaseUrl } from "@/lib/api/env";
+
 type MenuItem = {
   href: string;
   label: string;
@@ -25,6 +27,17 @@ function isActive(pathname: string, href: string): boolean {
 export function SidebarMenu({ compact = false }: { compact?: boolean }) {
   const pathname = usePathname() ?? "/";
 
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await fetch(`${getApiBaseUrl()}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } finally {
+      window.location.assign("/");
+    }
+  };
+
   return (
     <nav aria-label="Menu principal" className={compact ? "menu menu-compact" : "menu"}>
       {MENU_ITEMS.map((item) => {
@@ -41,6 +54,9 @@ export function SidebarMenu({ compact = false }: { compact?: boolean }) {
           </Link>
         );
       })}
+      <button type="button" className="menu-link" onClick={handleLogout}>
+        Sair
+      </button>
     </nav>
   );
 }

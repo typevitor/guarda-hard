@@ -1,5 +1,3 @@
-import { cookies } from "next/headers";
-
 import { ApiError, toApiError } from "./errors";
 import { getApiBaseUrl } from "./env";
 
@@ -18,7 +16,7 @@ export async function apiClient<T = void>({
   responseType = "json",
   fallbackErrorMessage,
 }: ApiClientOptions): Promise<T> {
-  const cookieHeader = (await cookies()).toString();
+  const cookieHeader = await getServerCookieHeader();
   const headers: HeadersInit = {};
 
   if (cookieHeader) {
@@ -34,6 +32,7 @@ export async function apiClient<T = void>({
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
     cache: "no-store",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -53,4 +52,13 @@ export async function apiClient<T = void>({
   } catch {
     throw new ApiError(fallbackErrorMessage, response.status);
   }
+}
+
+async function getServerCookieHeader(): Promise<string> {
+  if (typeof window !== "undefined") {
+    return "";
+  }
+
+  const { cookies } = await import("next/headers");
+  return (await cookies()).toString();
 }
