@@ -34,6 +34,14 @@ export class TypeOrmUsuarioRepository implements IUsuarioRepository {
     return orms.map((orm) => UsuarioMapper.toDomain(orm));
   }
 
+  async findByEmail(email: string): Promise<Usuario | null> {
+    const orm = await this.ormRepo.findOne({
+      where: { email: email.trim().toLowerCase() },
+    });
+
+    return orm ? UsuarioMapper.toDomain(orm) : null;
+  }
+
   async listPaginated(query: UsuarioListQuery): Promise<PaginatedUsuarios> {
     const empresaId = this.tenantContext.requireEmpresaId();
     const page = query.page;

@@ -10,6 +10,7 @@ describe('UsuarioMapper', () => {
     orm.departamento_id = 'dept-1';
     orm.nome = 'Joao Silva';
     orm.email = 'joao@example.com';
+    orm.senha_hash = 'hash123';
     orm.ativo = true;
     orm.created_at = new Date('2025-01-01');
     orm.updated_at = new Date('2025-06-01');
@@ -20,6 +21,7 @@ describe('UsuarioMapper', () => {
     expect(roundTripped.departamento_id).toBe(orm.departamento_id);
     expect(roundTripped.nome).toBe(orm.nome);
     expect(roundTripped.email).toBe(orm.email);
+    expect(roundTripped.senha_hash).toBe(orm.senha_hash);
     expect(roundTripped.ativo).toBe(orm.ativo);
   });
 });

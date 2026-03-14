@@ -26,6 +26,9 @@ export class UsuarioOrmEntity {
   @Column({ type: 'varchar', length: 200 })
   email!: string;
 
+  @Column({ type: 'varchar', name: 'senha_hash', length: 255 })
+  senha_hash!: string;
+
   @Column({ type: 'boolean', default: true })
   ativo!: boolean;
 

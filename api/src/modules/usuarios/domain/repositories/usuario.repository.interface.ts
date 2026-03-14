@@ -21,6 +21,7 @@ export interface IUsuarioRepository {
   findById(id: string): Promise<Usuario | null>;
   findAll(): Promise<Usuario[]>;
   listPaginated(query: UsuarioListQuery): Promise<PaginatedUsuarios>;
+  findByEmail?(email: string): Promise<Usuario | null>;
   save(usuario: Usuario): Promise<void>;
   delete(id: string): Promise<void>;
 }

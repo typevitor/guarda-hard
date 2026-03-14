@@ -19,6 +19,7 @@ describe('UsuarioOrmEntity metadata', () => {
         'departamento_id',
         'nome',
         'email',
+        'senha_hash',
         'ativo',
       ]),
     );

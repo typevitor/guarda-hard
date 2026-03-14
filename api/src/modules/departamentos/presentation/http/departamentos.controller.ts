@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { DepartamentosService } from '../../application/services/departamentos.service';
 import {
@@ -22,6 +23,7 @@ import {
 } from '../../application/dto/departamento.schemas';
 import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-validation.pipe';
 import { Departamento } from '../../domain/entities/departamento.entity';
+import { SessionPhaseGuard } from '../../../auth/presentation/http/session-phase.guard';
 
 type DepartamentoHttpResponse = {
   id: string;
@@ -40,6 +42,7 @@ type PaginatedDepartamentoHttpResponse = {
 };
 
 @Controller('departamentos')
+@UseGuards(SessionPhaseGuard)
 export class DepartamentosController {
   constructor(
     @Inject(DepartamentosService)

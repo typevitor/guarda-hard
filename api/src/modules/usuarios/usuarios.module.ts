@@ -12,9 +12,10 @@ import { DeleteUsuarioUseCase } from './application/use-cases/delete-usuario.use
 import { UsuariosService } from './application/services/usuarios.service';
 import { UsuariosController } from './presentation/http/usuarios.controller';
 import { TenantModule } from '../../tenant/tenant.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UsuarioOrmEntity]), TenantModule],
+  imports: [TypeOrmModule.forFeature([UsuarioOrmEntity]), TenantModule, AuthModule],
   controllers: [UsuariosController],
   providers: [
     {

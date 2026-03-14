@@ -12,9 +12,10 @@ import { DeleteDepartamentoUseCase } from './application/use-cases/delete-depart
 import { DepartamentosService } from './application/services/departamentos.service';
 import { DepartamentosController } from './presentation/http/departamentos.controller';
 import { TenantModule } from '../../tenant/tenant.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DepartamentoOrmEntity]), TenantModule],
+  imports: [TypeOrmModule.forFeature([DepartamentoOrmEntity]), TenantModule, AuthModule],
   controllers: [DepartamentosController],
   providers: [
     {

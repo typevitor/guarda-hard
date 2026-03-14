@@ -22,18 +22,21 @@ export const createUsuarioSchema = z.object({
   departamentoId: z.string().uuid(),
   nome: z.string().trim().min(1),
   email: z.string().trim().email(),
+  senhaHash: z.string().trim().min(1).optional(),
 });
 
 export const updateUsuarioSchema = z
   .object({
     nome: z.string().trim().min(1).optional(),
     email: z.string().trim().email().optional(),
+    senhaHash: z.string().trim().min(1).optional(),
     ativo: z.boolean().optional(),
   })
   .refine(
     (payload) =>
       payload.nome !== undefined ||
       payload.email !== undefined ||
+      payload.senhaHash !== undefined ||
       payload.ativo !== undefined,
     {
       message: 'Pelo menos um campo deve ser informado para atualizacao',

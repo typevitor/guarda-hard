@@ -22,6 +22,25 @@ type ApiErrorResponse = {
   details: unknown[];
 };
 
+type HttpExceptionPayload =
+  | string
+  | { message?: string | string[]; error?: string; issues?: unknown[]; details?: unknown[] };
+
+const getHttpExceptionMessage = (
+  payload: HttpExceptionPayload,
+  fallback: string,
+): string => {
+  if (typeof payload === 'string') {
+    return payload;
+  }
+
+  if (Array.isArray(payload.message)) {
+    return payload.message.join(', ');
+  }
+
+  return payload.message ?? payload.error ?? fallback;
+};
+
 @Catch()
 export class ApiErrorFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
@@ -34,13 +53,23 @@ export class ApiErrorFilter implements ExceptionFilter {
   private mapException(exception: unknown): ApiErrorResponse {
     if (
       exception instanceof MissingTenantContextError ||
-      exception instanceof InvalidTenantPayloadError ||
-      exception instanceof UnauthorizedException
+      exception instanceof InvalidTenantPayloadError
     ) {
       return {
         statusCode: HttpStatus.UNAUTHORIZED,
         code: 'AUTH_REQUIRED',
         message: 'Authentication context is required',
+        details: [],
+      };
+    }
+
+    if (exception instanceof UnauthorizedException) {
+      const payload = exception.getResponse() as HttpExceptionPayload;
+
+      return {
+        statusCode: HttpStatus.UNAUTHORIZED,
+        code: 'AUTH_REQUIRED',
+        message: getHttpExceptionMessage(payload, 'Authentication required'),
         details: [],
       };
     }
@@ -88,15 +117,8 @@ export class ApiErrorFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       const statusCode = exception.getStatus();
-      const payload = exception.getResponse() as
-        | string
-        | { message?: string | string[]; error?: string };
-      const message =
-        typeof payload === 'string'
-          ? payload
-          : Array.isArray(payload.message)
-            ? payload.message.join(', ')
-            : payload.message ?? payload.error ?? 'Request failed';
+      const payload = exception.getResponse() as HttpExceptionPayload;
+      const message = getHttpExceptionMessage(payload, 'Request failed');
 
       return {
         statusCode,

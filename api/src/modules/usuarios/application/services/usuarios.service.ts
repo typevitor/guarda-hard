@@ -41,6 +41,7 @@ export class UsuariosService {
       departamentoId: input.departamentoId,
       nome: input.nome,
       email: input.email,
+      senhaHash: input.senhaHash,
     });
   }
 
@@ -61,6 +62,7 @@ export class UsuariosService {
       id,
       nome: input.nome,
       email: input.email,
+      senhaHash: input.senhaHash,
       ativo: input.ativo,
     });
   }

@@ -9,6 +9,7 @@ import { DepartamentosModule } from './modules/departamentos/departamentos.modul
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
 import { RelatoriosModule } from './modules/relatorios/relatorios.module';
 import { EmpresasModule } from './modules/empresas/empresas.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { EmpresasModule } from './modules/empresas/empresas.module';
     UsuariosModule,
     RelatoriosModule,
     EmpresasModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

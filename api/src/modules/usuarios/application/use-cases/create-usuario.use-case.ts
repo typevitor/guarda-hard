@@ -17,12 +17,14 @@ export class CreateUsuarioUseCase {
     departamentoId: string;
     nome: string;
     email: string;
+    senhaHash?: string;
   }): Promise<Usuario> {
     const usuario = Usuario.create({
       empresaId: input.empresaId,
       departamentoId: input.departamentoId,
       nome: input.nome,
       email: input.email,
+      senhaHash: input.senhaHash,
     });
 
     await this.usuarioRepository.save(usuario);

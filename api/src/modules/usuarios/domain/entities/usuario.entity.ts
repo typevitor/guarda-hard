@@ -7,15 +7,17 @@ export interface UsuarioProps {
   departamentoId: string;
   nome: string;
   email: string;
+  senhaHash?: string;
   ativo: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export class Usuario extends DomainEntity {
-  readonly departamentoId: string; // Cross-aggregate reference by ID
+  readonly departamentoId: string;
   private _nome: string;
   private _email: string;
+  private _senhaHash: string;
   private _ativo: boolean;
 
   constructor(props: UsuarioProps) {
@@ -23,6 +25,7 @@ export class Usuario extends DomainEntity {
     this.departamentoId = props.departamentoId;
     this._nome = props.nome;
     this._email = props.email;
+    this._senhaHash = props.senhaHash ?? '';
     this._ativo = props.ativo;
   }
 
@@ -31,6 +34,7 @@ export class Usuario extends DomainEntity {
     departamentoId: string;
     nome: string;
     email: string;
+    senhaHash?: string;
   }): Usuario {
     return new Usuario({
       id: randomUUID(),
@@ -38,6 +42,7 @@ export class Usuario extends DomainEntity {
       departamentoId: props.departamentoId,
       nome: props.nome,
       email: props.email,
+      senhaHash: props.senhaHash,
       ativo: true,
     });
   }
@@ -48,6 +53,9 @@ export class Usuario extends DomainEntity {
   get email(): string {
     return this._email;
   }
+  get senhaHash(): string {
+    return this._senhaHash;
+  }
   get ativo(): boolean {
     return this._ativo;
   }
@@ -55,6 +63,7 @@ export class Usuario extends DomainEntity {
   atualizarPerfil(props: {
     nome?: string;
     email?: string;
+    senhaHash?: string;
     ativo?: boolean;
   }): void {
     if (props.nome !== undefined) {
@@ -63,6 +72,10 @@ export class Usuario extends DomainEntity {
 
     if (props.email !== undefined) {
       this._email = props.email;
+    }
+
+    if (props.senhaHash !== undefined) {
+      this._senhaHash = props.senhaHash;
     }
 
     if (props.ativo !== undefined) {

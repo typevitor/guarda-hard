@@ -16,6 +16,7 @@ export class UpdateUsuarioUseCase {
     id: string;
     nome?: string;
     email?: string;
+    senhaHash?: string;
     ativo?: boolean;
   }): Promise<Usuario> {
     const usuario = await this.usuarioRepository.findById(input.id);
@@ -27,6 +28,7 @@ export class UpdateUsuarioUseCase {
     usuario.atualizarPerfil({
       nome: input.nome,
       email: input.email,
+      senhaHash: input.senhaHash,
       ativo: input.ativo,
     });
 

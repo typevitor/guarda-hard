@@ -9,6 +9,7 @@ export class UsuarioMapper {
       departamentoId: orm.departamento_id,
       nome: orm.nome,
       email: orm.email,
+      senhaHash: orm.senha_hash,
       ativo: orm.ativo,
       createdAt: orm.created_at,
       updatedAt: orm.updated_at,
@@ -22,6 +23,7 @@ export class UsuarioMapper {
     orm.departamento_id = domain.departamentoId;
     orm.nome = domain.nome;
     orm.email = domain.email;
+    orm.senha_hash = domain.senhaHash;
     orm.ativo = domain.ativo;
     return orm;
   }
