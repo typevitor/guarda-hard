@@ -3,7 +3,6 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
@@ -14,6 +13,21 @@ import { InjectDataSource } from '@nestjs/typeorm';
 type AuthSession = {
   userId: string;
   empresaId?: string;
+};
+
+type EmpresaRow = {
+  id: string;
+  nome: string;
+};
+
+type UserLookupRow = {
+  id: string;
+  senha_hash: string;
+  ativo: number;
+};
+
+type UsuarioEmpresaRow = {
+  usuario_id: string;
 };
 
 @Injectable()
@@ -36,17 +50,19 @@ export class AuthService {
     const senhaHash = await this.passwordHasher.hash(input.senha);
 
     await this.dataSource.transaction(async (manager) => {
-      const empresas = (await manager.query(`SELECT id FROM empresas WHERE id = ? LIMIT 1`, [
-        input.empresaId,
-      ])) as Array<{ id: string }>;
+      const empresas = (await manager.query(
+        `SELECT id FROM empresas WHERE id = ? LIMIT 1`,
+        [input.empresaId],
+      )) as unknown as Array<Pick<EmpresaRow, 'id'>>;
 
       if (empresas.length === 0) {
         throw new BadRequestException('Empresa nao encontrada');
       }
 
-      const duplicate = (await manager.query(`SELECT id FROM usuarios WHERE email = ? LIMIT 1`, [
-        email,
-      ])) as Array<{ id: string }>;
+      const duplicate = (await manager.query(
+        `SELECT id FROM usuarios WHERE email = ? LIMIT 1`,
+        [email],
+      )) as unknown as Array<Pick<UserLookupRow, 'id'>>;
 
       if (duplicate.length > 0) {
         throw new ConflictException('Email ja cadastrado');
@@ -79,7 +95,7 @@ export class AuthService {
       FROM empresas
       ORDER BY nome ASC
       `,
-    )) as Array<{ id: string; nome: string }>;
+    )) as unknown as EmpresaRow[];
 
     return rows;
   }
@@ -97,7 +113,7 @@ export class AuthService {
       LIMIT 1
       `,
       [email],
-    )) as Array<{ id: string; senha_hash: string; ativo: number }>;
+    )) as unknown as UserLookupRow[];
 
     const user = rows[0];
 
@@ -105,7 +121,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const valid = await this.passwordHasher.verify(input.senha, user.senha_hash);
+    const valid = await this.passwordHasher.verify(
+      input.senha,
+      user.senha_hash,
+    );
 
     if (!valid) {
       throw new UnauthorizedException('Invalid credentials');
@@ -114,7 +133,9 @@ export class AuthService {
     return { userId: user.id };
   }
 
-  async listMinhasEmpresas(userId: string): Promise<Array<{ id: string; nome: string }>> {
+  async listMinhasEmpresas(
+    userId: string,
+  ): Promise<Array<{ id: string; nome: string }>> {
     const rows = (await this.dataSource.query(
       `
       SELECT e.id, e.nome
@@ -124,7 +145,7 @@ export class AuthService {
       ORDER BY e.nome ASC
       `,
       [userId],
-    )) as Array<{ id: string; nome: string }>;
+    )) as unknown as EmpresaRow[];
 
     return rows;
   }
@@ -141,7 +162,7 @@ export class AuthService {
       LIMIT 1
       `,
       [input.userId, input.empresaId],
-    )) as Array<{ usuario_id: string }>;
+    )) as unknown as UsuarioEmpresaRow[];
 
     if (rows.length === 0) {
       throw new ForbiddenException('Empresa nao permitida para este usuario');

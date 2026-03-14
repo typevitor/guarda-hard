@@ -3,8 +3,8 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 
 @Injectable()
 export class PasswordHasher {
-  async hash(value: string): Promise<string> {
-    return createHash('sha256').update(value).digest('hex');
+  hash(value: string): Promise<string> {
+    return Promise.resolve(createHash('sha256').update(value).digest('hex'));
   }
 
   async verify(plain: string, hashed: string): Promise<boolean> {

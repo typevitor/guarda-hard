@@ -6,11 +6,11 @@ import { Empresa } from '../../domain/entities/empresa.entity';
 describe('ListEmpresasUseCase', () => {
   it('returns sorted empresas list', async () => {
     const repository: IEmpresaRepository = {
-      async findAll(): Promise<Empresa[]> {
-        return [
+      findAll(): Promise<Empresa[]> {
+        return Promise.resolve([
           new Empresa({ id: '2', nome: 'Zeta' }),
           new Empresa({ id: '1', nome: 'Alpha' }),
-        ];
+        ]);
       },
     };
 

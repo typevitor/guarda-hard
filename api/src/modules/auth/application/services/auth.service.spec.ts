@@ -15,14 +15,19 @@ describe('AuthService.register', () => {
 
     const dataSource = {
       query: vi.fn(),
-      transaction: vi.fn(async (cb: (txManager: typeof manager) => Promise<void>) => cb(manager)),
+      transaction: vi.fn((cb: (txManager: typeof manager) => Promise<void>) =>
+        cb(manager),
+      ),
     };
 
     const passwordHasher = {
-      hash: vi.fn(async () => 'hashed-password'),
+      hash: vi.fn(() => Promise.resolve('hashed-password')),
     };
 
-    const service = new AuthService(dataSource as never, passwordHasher as never);
+    const service = new AuthService(
+      dataSource as never,
+      passwordHasher as never,
+    );
 
     const result = await service.register({
       nome: 'Usuario',
@@ -43,14 +48,19 @@ describe('AuthService.register', () => {
 
     const dataSource = {
       query: vi.fn(),
-      transaction: vi.fn(async (cb: (txManager: typeof manager) => Promise<void>) => cb(manager)),
+      transaction: vi.fn((cb: (txManager: typeof manager) => Promise<void>) =>
+        cb(manager),
+      ),
     };
 
     const passwordHasher = {
-      hash: vi.fn(async () => 'hashed-password'),
+      hash: vi.fn(() => Promise.resolve('hashed-password')),
     };
 
-    const service = new AuthService(dataSource as never, passwordHasher as never);
+    const service = new AuthService(
+      dataSource as never,
+      passwordHasher as never,
+    );
 
     await expect(
       service.register({

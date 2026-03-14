@@ -24,7 +24,27 @@ type ApiErrorResponse = {
 
 type HttpExceptionPayload =
   | string
-  | { message?: string | string[]; error?: string; issues?: unknown[]; details?: unknown[] };
+  | {
+      message?: string | string[];
+      error?: string;
+      issues?: unknown[];
+      details?: unknown[];
+    };
+
+const mapHttpStatusToErrorCode = (statusCode: HttpStatus): string => {
+  switch (statusCode) {
+    case HttpStatus.CONFLICT:
+      return 'BUSINESS_RULE_VIOLATION';
+    case HttpStatus.BAD_REQUEST:
+      return 'VALIDATION_ERROR';
+    case HttpStatus.UNAUTHORIZED:
+      return 'AUTH_REQUIRED';
+    case HttpStatus.FORBIDDEN:
+      return 'TENANT_FORBIDDEN';
+    default:
+      return 'INTERNAL_ERROR';
+  }
+};
 
 const getHttpExceptionMessage = (
   payload: HttpExceptionPayload,
@@ -86,17 +106,21 @@ export class ApiErrorFilter implements ExceptionFilter {
     if (exception instanceof BadRequestException) {
       const payload = exception.getResponse() as
         | string
-        | { message?: string | string[]; issues?: unknown[]; details?: unknown[] };
+        | {
+            message?: string | string[];
+            issues?: unknown[];
+            details?: unknown[];
+          };
       const message =
         typeof payload === 'string'
           ? payload
           : Array.isArray(payload.message)
             ? payload.message.join(', ')
-            : payload.message ?? 'Validation failed';
+            : (payload.message ?? 'Validation failed');
       const details =
         typeof payload === 'string'
           ? []
-          : payload.details ?? payload.issues ?? [];
+          : (payload.details ?? payload.issues ?? []);
 
       return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -116,22 +140,13 @@ export class ApiErrorFilter implements ExceptionFilter {
     }
 
     if (exception instanceof HttpException) {
-      const statusCode = exception.getStatus();
+      const statusCode = exception.getStatus() as HttpStatus;
       const payload = exception.getResponse() as HttpExceptionPayload;
       const message = getHttpExceptionMessage(payload, 'Request failed');
 
       return {
         statusCode,
-        code:
-          statusCode === HttpStatus.CONFLICT
-            ? 'BUSINESS_RULE_VIOLATION'
-            : statusCode === HttpStatus.BAD_REQUEST
-              ? 'VALIDATION_ERROR'
-              : statusCode === HttpStatus.UNAUTHORIZED
-                ? 'AUTH_REQUIRED'
-                : statusCode === HttpStatus.FORBIDDEN
-                  ? 'TENANT_FORBIDDEN'
-                  : 'INTERNAL_ERROR',
+        code: mapHttpStatusToErrorCode(statusCode),
         message,
         details: [],
       };

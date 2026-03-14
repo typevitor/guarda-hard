@@ -5,9 +5,8 @@ import { RegisterUseCase } from './register.use-case';
 describe('RegisterUseCase', () => {
   it('rejects unknown empresaId', async () => {
     const useCase = new RegisterUseCase({
-      register: async () => {
-        throw new NotFoundException('Empresa nao encontrada');
-      },
+      register: () =>
+        Promise.reject(new NotFoundException('Empresa nao encontrada')),
     });
 
     await expect(
@@ -22,9 +21,8 @@ describe('RegisterUseCase', () => {
 
   it('rejects duplicate global email with 409', async () => {
     const useCase = new RegisterUseCase({
-      register: async () => {
-        throw new ConflictException('Email ja cadastrado');
-      },
+      register: () =>
+        Promise.reject(new ConflictException('Email ja cadastrado')),
     });
 
     await expect(

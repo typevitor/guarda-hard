@@ -48,7 +48,9 @@ export class AuthController {
   ) {}
 
   @Get('empresas')
-  async listEmpresas(): Promise<{ items: Array<{ id: string; nome: string }> }> {
+  async listEmpresas(): Promise<{
+    items: Array<{ id: string; nome: string }>;
+  }> {
     const items = await this.authService.listEmpresas();
     return { items };
   }
@@ -113,10 +115,12 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthGuard)
-  async me(@CurrentAuthUserDecorator() user: { userId: string; empresaId?: string }): Promise<{
+  me(
+    @CurrentAuthUserDecorator() user: { userId: string; empresaId?: string },
+  ): {
     id: string;
     empresaId?: string;
-  }> {
+  } {
     const current = this.getCurrentUserUseCase.execute(user);
 
     return {

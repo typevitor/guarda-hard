@@ -17,7 +17,7 @@ describe('UsuariosController', () => {
     });
 
     const usuariosService = {
-      getById: async () => usuario,
+      getById: () => Promise.resolve(usuario),
     };
 
     const controller = new UsuariosController(usuariosService as never);

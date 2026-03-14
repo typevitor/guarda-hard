@@ -15,6 +15,41 @@ import { GlobalUsersEmpresasMembership1773401000000 } from './1773401000000-Glob
 const TENANT_A = '22222222-2222-2222-2222-222222222222';
 const TENANT_B = '33333333-3333-3333-3333-333333333333';
 
+type EmpresaRow = {
+  id: string;
+  nome: string;
+};
+
+type NamedRow = {
+  name: string;
+};
+
+type ForeignKeyRow = {
+  from: string;
+  table: string;
+  to: string;
+};
+
+type IndexRow = {
+  name: string;
+  unique: number;
+};
+
+type MembershipRow = {
+  usuario_id: string;
+  empresa_id: string;
+};
+
+type LegacyHashRow = {
+  id: string;
+  senha_hash: string;
+};
+
+const queryRows = async <TRow>(
+  queryRunner: QueryRunner,
+  sql: string,
+): Promise<TRow[]> => queryRunner.query(sql) as Promise<TRow[]>;
+
 async function seedLegacyData(queryRunner: QueryRunner): Promise<void> {
   await queryRunner.query(
     `
@@ -78,7 +113,10 @@ describe('GlobalUsersEmpresasMembership migration', () => {
           HardwareOrmEntity,
           EmprestimoOrmEntity,
         ],
-        migrations: [CreateEtapa2Schema1773327116742, SeedDefaultDepartamentos1773327116743],
+        migrations: [
+          CreateEtapa2Schema1773327116742,
+          SeedDefaultDepartamentos1773327116743,
+        ],
         synchronize: false,
         logging: false,
       });
@@ -93,10 +131,15 @@ describe('GlobalUsersEmpresasMembership migration', () => {
       const migration = new GlobalUsersEmpresasMembership1773401000000();
       await migration.up(queryRunner);
 
-      const empresasRows = await queryRunner.query(
+      const empresasRows = await queryRows<EmpresaRow>(
+        queryRunner,
         `SELECT id, nome FROM empresas ORDER BY id ASC`,
       );
-      expect(empresasRows.some((row: { nome: string }) => row.nome === 'Test company')).toBe(true);
+      expect(
+        empresasRows.some(
+          (row: { nome: string }) => row.nome === 'Test company',
+        ),
+      ).toBe(true);
       expect(
         empresasRows.some(
           (row: { id: string; nome: string }) =>
@@ -110,32 +153,40 @@ describe('GlobalUsersEmpresasMembership migration', () => {
         ),
       ).toBe(true);
 
-      const tables = await queryRunner.query(
+      const tables = await queryRows<NamedRow>(
+        queryRunner,
         `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`,
       );
 
-      for (const row of tables as Array<{ name: string }>) {
-        const columns = await queryRunner.query(`PRAGMA table_info('${row.name}')`);
-        if (!columns.some((column: { name: string }) => column.name === 'empresa_id')) {
+      for (const row of tables) {
+        const columns = await queryRows<NamedRow>(
+          queryRunner,
+          `PRAGMA table_info('${row.name}')`,
+        );
+        if (!columns.some((column) => column.name === 'empresa_id')) {
           continue;
         }
 
-        const foreignKeys = await queryRunner.query(
+        const foreignKeys = await queryRows<ForeignKeyRow>(
+          queryRunner,
           `PRAGMA foreign_key_list('${row.name}')`,
         );
 
         expect(
           foreignKeys.some(
-            (fk: { from: string; table: string; to: string }) =>
-              fk.from === 'empresa_id' && fk.table === 'empresas' && fk.to === 'id',
+            (fk) =>
+              fk.from === 'empresa_id' &&
+              fk.table === 'empresas' &&
+              fk.to === 'id',
           ),
         ).toBe(true);
       }
 
-      const usuarioColumns = await queryRunner.query(`PRAGMA table_info('usuarios')`);
-      const usuarioColumnNames = usuarioColumns.map(
-        (column: { name: string }) => column.name,
+      const usuarioColumns = await queryRows<NamedRow>(
+        queryRunner,
+        `PRAGMA table_info('usuarios')`,
       );
+      const usuarioColumnNames = usuarioColumns.map((column) => column.name);
       expect(usuarioColumnNames).toContain('nome');
       expect(usuarioColumnNames).toContain('email');
       expect(usuarioColumnNames).toContain('senha_hash');
@@ -144,66 +195,78 @@ describe('GlobalUsersEmpresasMembership migration', () => {
       expect(usuarioColumnNames).toContain('updated_at');
       expect(usuarioColumnNames).not.toContain('empresa_id');
 
-      const usuarioIndexList = await queryRunner.query(`PRAGMA index_list('usuarios')`);
+      const usuarioIndexList = await queryRows<IndexRow>(
+        queryRunner,
+        `PRAGMA index_list('usuarios')`,
+      );
       const usuarioUniqueIndexes = usuarioIndexList.filter(
-        (idx: { unique: number }) => idx.unique === 1,
+        (idx) => idx.unique === 1,
       );
       const usuarioUniqueIndexColumns = await Promise.all(
-        usuarioUniqueIndexes.map((idx: { name: string }) =>
-          queryRunner!.query(`PRAGMA index_info('${idx.name}')`),
+        usuarioUniqueIndexes.map((idx) =>
+          queryRows<NamedRow>(
+            queryRunner as QueryRunner,
+            `PRAGMA index_info('${idx.name}')`,
+          ),
         ),
       );
       expect(
-        usuarioUniqueIndexColumns.some((cols: Array<{ name: string }>) => {
+        usuarioUniqueIndexColumns.some((cols) => {
           const names = cols.map((column) => column.name);
           return names.length === 1 && names[0] === 'email';
         }),
       ).toBe(true);
 
-      const usuarioEmpresasColumns = await queryRunner.query(
+      const usuarioEmpresasColumns = await queryRows<NamedRow>(
+        queryRunner,
         `PRAGMA table_info('usuario_empresas')`,
       );
       expect(
-        usuarioEmpresasColumns.some(
-          (column: { name: string }) => column.name === 'usuario_id',
-        ),
+        usuarioEmpresasColumns.some((column) => column.name === 'usuario_id'),
       ).toBe(true);
       expect(
-        usuarioEmpresasColumns.some(
-          (column: { name: string }) => column.name === 'empresa_id',
-        ),
+        usuarioEmpresasColumns.some((column) => column.name === 'empresa_id'),
       ).toBe(true);
 
-      const usuarioEmpresasForeignKeys = await queryRunner.query(
+      const usuarioEmpresasForeignKeys = await queryRows<ForeignKeyRow>(
+        queryRunner,
         `PRAGMA foreign_key_list('usuario_empresas')`,
       );
       expect(
         usuarioEmpresasForeignKeys.some(
-          (fk: { from: string; table: string; to: string }) =>
-            fk.from === 'usuario_id' && fk.table === 'usuarios' && fk.to === 'id',
+          (fk) =>
+            fk.from === 'usuario_id' &&
+            fk.table === 'usuarios' &&
+            fk.to === 'id',
         ),
       ).toBe(true);
       expect(
         usuarioEmpresasForeignKeys.some(
-          (fk: { from: string; table: string; to: string }) =>
-            fk.from === 'empresa_id' && fk.table === 'empresas' && fk.to === 'id',
+          (fk) =>
+            fk.from === 'empresa_id' &&
+            fk.table === 'empresas' &&
+            fk.to === 'id',
         ),
       ).toBe(true);
 
-      const usuarioEmpresasIndexList = await queryRunner.query(
+      const usuarioEmpresasIndexList = await queryRows<IndexRow>(
+        queryRunner,
         `PRAGMA index_list('usuario_empresas')`,
       );
       const uniqueIndexes = usuarioEmpresasIndexList.filter(
-        (idx: { unique: number }) => idx.unique === 1,
+        (idx) => idx.unique === 1,
       );
       const uniqueIndexColumns = await Promise.all(
-        uniqueIndexes.map((idx: { name: string }) =>
-          queryRunner!.query(`PRAGMA index_info('${idx.name}')`),
+        uniqueIndexes.map((idx) =>
+          queryRows<NamedRow>(
+            queryRunner as QueryRunner,
+            `PRAGMA index_info('${idx.name}')`,
+          ),
         ),
       );
 
       expect(
-        uniqueIndexColumns.some((cols: Array<{ name: string }>) => {
+        uniqueIndexColumns.some((cols) => {
           const names = cols.map((column) => column.name);
           return (
             names.length === 2 &&
@@ -213,7 +276,8 @@ describe('GlobalUsersEmpresasMembership migration', () => {
         }),
       ).toBe(true);
 
-      const memberships = await queryRunner.query(
+      const memberships = await queryRows<MembershipRow>(
+        queryRunner,
         `SELECT usuario_id, empresa_id FROM usuario_empresas ORDER BY usuario_id ASC`,
       );
       expect(memberships).toEqual(
@@ -229,12 +293,19 @@ describe('GlobalUsersEmpresasMembership migration', () => {
         ]),
       );
 
-      const legacyHashRows = await queryRunner.query(
+      const legacyHashRows = await queryRows<LegacyHashRow>(
+        queryRunner,
         `SELECT id, senha_hash FROM usuarios WHERE id IN ('usr-a-0000-0000-0000-000000000001', 'usr-b-0000-0000-0000-000000000001') ORDER BY id ASC`,
       );
       expect(legacyHashRows).toEqual([
-        { id: 'usr-a-0000-0000-0000-000000000001', senha_hash: 'legacy-usr-a-0000-0000-0000-000000000001' },
-        { id: 'usr-b-0000-0000-0000-000000000001', senha_hash: 'legacy-usr-b-0000-0000-0000-000000000001' },
+        {
+          id: 'usr-a-0000-0000-0000-000000000001',
+          senha_hash: 'legacy-usr-a-0000-0000-0000-000000000001',
+        },
+        {
+          id: 'usr-b-0000-0000-0000-000000000001',
+          senha_hash: 'legacy-usr-b-0000-0000-0000-000000000001',
+        },
       ]);
 
       const db = new Database(testDbPath, { readonly: true });
@@ -290,7 +361,10 @@ describe('GlobalUsersEmpresasMembership migration', () => {
           HardwareOrmEntity,
           EmprestimoOrmEntity,
         ],
-        migrations: [CreateEtapa2Schema1773327116742, SeedDefaultDepartamentos1773327116743],
+        migrations: [
+          CreateEtapa2Schema1773327116742,
+          SeedDefaultDepartamentos1773327116743,
+        ],
         synchronize: false,
         logging: false,
       });
@@ -323,7 +397,16 @@ describe('GlobalUsersEmpresasMembership migration', () => {
       const migration = new GlobalUsersEmpresasMembership1773401000000();
       await migration.up(queryRunner);
 
-      const dedupedRows = await queryRunner.query(
+      const dedupedRows = await queryRows<{
+        id: string;
+        nome: string;
+        email: string;
+        senha_hash: string;
+        ativo: number;
+        created_at: string;
+        updated_at: string;
+      }>(
+        queryRunner,
         `
           SELECT id, nome, email, senha_hash, ativo, created_at, updated_at
           FROM usuarios
@@ -343,7 +426,8 @@ describe('GlobalUsersEmpresasMembership migration', () => {
         },
       ]);
 
-      const duplicateMemberships = await queryRunner.query(
+      const duplicateMemberships = await queryRows<MembershipRow>(
+        queryRunner,
         `
           SELECT usuario_id, empresa_id
           FROM usuario_empresas
@@ -353,26 +437,39 @@ describe('GlobalUsersEmpresasMembership migration', () => {
       );
 
       expect(duplicateMemberships).toEqual([
-        { usuario_id: 'usr-dup-a-0000-0000-000000000001', empresa_id: TENANT_A },
-        { usuario_id: 'usr-dup-a-0000-0000-000000000001', empresa_id: TENANT_B },
+        {
+          usuario_id: 'usr-dup-a-0000-0000-000000000001',
+          empresa_id: TENANT_A,
+        },
+        {
+          usuario_id: 'usr-dup-a-0000-0000-000000000001',
+          empresa_id: TENANT_B,
+        },
       ]);
 
-      const removedDuplicateRows = await queryRunner.query(
+      const removedDuplicateRows = await queryRows<Pick<LegacyHashRow, 'id'>>(
+        queryRunner,
         `SELECT id FROM usuarios WHERE id = 'usr-dup-b-0000-0000-000000000001'`,
       );
       expect(removedDuplicateRows).toEqual([]);
 
-      const usuarioIndexList = await queryRunner.query(`PRAGMA index_list('usuarios')`);
+      const usuarioIndexList = await queryRows<IndexRow>(
+        queryRunner,
+        `PRAGMA index_list('usuarios')`,
+      );
       const usuarioUniqueIndexes = usuarioIndexList.filter(
-        (idx: { unique: number }) => idx.unique === 1,
+        (idx) => idx.unique === 1,
       );
       const usuarioUniqueIndexColumns = await Promise.all(
-        usuarioUniqueIndexes.map((idx: { name: string }) =>
-          queryRunner!.query(`PRAGMA index_info('${idx.name}')`),
+        usuarioUniqueIndexes.map((idx) =>
+          queryRows<NamedRow>(
+            queryRunner as QueryRunner,
+            `PRAGMA index_info('${idx.name}')`,
+          ),
         ),
       );
       expect(
-        usuarioUniqueIndexColumns.some((cols: Array<{ name: string }>) => {
+        usuarioUniqueIndexColumns.some((cols) => {
           const names = cols.map((column) => column.name);
           return names.length === 1 && names[0] === 'email';
         }),

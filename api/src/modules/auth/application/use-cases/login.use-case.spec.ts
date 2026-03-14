@@ -5,9 +5,8 @@ import { LoginUseCase } from './login.use-case';
 describe('LoginUseCase', () => {
   it('returns generic invalid credentials error', async () => {
     const useCase = new LoginUseCase({
-      login: async () => {
-        throw new UnauthorizedException('Invalid credentials');
-      },
+      login: () =>
+        Promise.reject(new UnauthorizedException('Invalid credentials')),
     });
 
     await expect(
