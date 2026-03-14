@@ -1,19 +1,19 @@
-import { ApiError, toApiError } from "./errors";
-import { getApiBaseUrl } from "./env";
+import { ApiError, toApiError } from './errors';
+import { getApiBaseUrl } from './env';
 
 type ApiClientOptions = {
   path: string;
-  method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
-  responseType?: "json" | "void";
+  responseType?: 'json' | 'void';
   fallbackErrorMessage: string;
 };
 
 export async function apiClient<T = void>({
   path,
-  method = "GET",
+  method = 'GET',
   body,
-  responseType = "json",
+  responseType = 'json',
   fallbackErrorMessage,
 }: ApiClientOptions): Promise<T> {
   const cookieHeader = await getServerCookieHeader();
@@ -24,15 +24,17 @@ export async function apiClient<T = void>({
   }
 
   if (body !== undefined) {
-    headers["Content-Type"] = "application/json";
+    headers['Content-Type'] = 'application/json';
   }
+
+  console.log('NEXT_PUBLIC_API_URL', getApiBaseUrl());
 
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
-    cache: "no-store",
-    credentials: "include",
+    cache: 'no-store',
+    credentials: 'include',
   });
 
   await syncAuthCookieFromResponse(response.headers);
@@ -41,7 +43,7 @@ export async function apiClient<T = void>({
     throw await toApiError(response, fallbackErrorMessage);
   }
 
-  if (responseType === "void") {
+  if (responseType === 'void') {
     return undefined as T;
   }
 
@@ -57,12 +59,12 @@ export async function apiClient<T = void>({
 }
 
 async function syncAuthCookieFromResponse(headers?: Headers): Promise<void> {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     return;
   }
 
   const setCookieHeaders = getSetCookieHeaders(headers).filter((header) =>
-    header.startsWith("gh_session="),
+    header.startsWith('gh_session='),
   );
 
   if (setCookieHeaders.length === 0) {
@@ -70,16 +72,16 @@ async function syncAuthCookieFromResponse(headers?: Headers): Promise<void> {
   }
 
   try {
-    const { cookies } = await import("next/headers");
+    const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
 
     for (const header of setCookieHeaders) {
-      const [pair, ...attributes] = header.split(";").map((part) => part.trim());
+      const [pair, ...attributes] = header.split(';').map((part) => part.trim());
       if (!pair) {
         continue;
       }
 
-      const separatorIndex = pair.indexOf("=");
+      const separatorIndex = pair.indexOf('=');
       if (separatorIndex <= 0) {
         continue;
       }
@@ -87,8 +89,8 @@ async function syncAuthCookieFromResponse(headers?: Headers): Promise<void> {
       const name = pair.slice(0, separatorIndex);
       const value = pair.slice(separatorIndex + 1);
 
-      const maxAgeAttr = attributes.find((attr) => attr.toLowerCase().startsWith("max-age="));
-      const maxAge = maxAgeAttr ? Number(maxAgeAttr.split("=")[1]) : undefined;
+      const maxAgeAttr = attributes.find((attr) => attr.toLowerCase().startsWith('max-age='));
+      const maxAge = maxAgeAttr ? Number(maxAgeAttr.split('=')[1]) : undefined;
 
       if (!value || maxAge === 0) {
         cookieStore.delete(name);
@@ -99,8 +101,8 @@ async function syncAuthCookieFromResponse(headers?: Headers): Promise<void> {
         name,
         value,
         path: parsePathAttribute(attributes),
-        httpOnly: attributes.some((attr) => attr.toLowerCase() === "httponly"),
-        secure: attributes.some((attr) => attr.toLowerCase() === "secure"),
+        httpOnly: attributes.some((attr) => attr.toLowerCase() === 'httponly'),
+        secure: attributes.some((attr) => attr.toLowerCase() === 'secure'),
         sameSite: parseSameSiteAttribute(attributes),
       });
     }
@@ -115,41 +117,41 @@ function getSetCookieHeaders(headers?: Headers): string[] {
   }
 
   const withGetSetCookie = headers as Headers & { getSetCookie?: () => string[] };
-  if (typeof withGetSetCookie.getSetCookie === "function") {
+  if (typeof withGetSetCookie.getSetCookie === 'function') {
     return withGetSetCookie.getSetCookie();
   }
 
-  const single = headers.get("set-cookie");
+  const single = headers.get('set-cookie');
   return single ? [single] : [];
 }
 
 function parsePathAttribute(attributes: string[]): string {
-  const pathAttr = attributes.find((attr) => attr.toLowerCase().startsWith("path="));
-  return pathAttr ? pathAttr.slice(pathAttr.indexOf("=") + 1) : "/";
+  const pathAttr = attributes.find((attr) => attr.toLowerCase().startsWith('path='));
+  return pathAttr ? pathAttr.slice(pathAttr.indexOf('=') + 1) : '/';
 }
 
-function parseSameSiteAttribute(attributes: string[]): "lax" | "strict" | "none" {
+function parseSameSiteAttribute(attributes: string[]): 'lax' | 'strict' | 'none' {
   const raw = attributes
-    .find((attr) => attr.toLowerCase().startsWith("samesite="))
-    ?.split("=")[1]
+    .find((attr) => attr.toLowerCase().startsWith('samesite='))
+    ?.split('=')[1]
     ?.toLowerCase();
 
-  if (raw === "strict") {
-    return "strict";
+  if (raw === 'strict') {
+    return 'strict';
   }
 
-  if (raw === "none") {
-    return "none";
+  if (raw === 'none') {
+    return 'none';
   }
 
-  return "lax";
+  return 'lax';
 }
 
 async function getServerCookieHeader(): Promise<string> {
-  if (typeof window !== "undefined") {
-    return "";
+  if (typeof window !== 'undefined') {
+    return '';
   }
 
-  const { cookies } = await import("next/headers");
+  const { cookies } = await import('next/headers');
   return (await cookies()).toString();
 }

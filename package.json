@@ -22,5 +22,9 @@
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.0",
     "vitest": "^3.0.9"
+  },
+  "dependencies": {
+    "@nestjs/config": "^4.0.3",
+    "api": "^6.1.3"
   }
 }

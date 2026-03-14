@@ -12,7 +12,6 @@ export class SessionTokenService {
 
   constructor() {
     const secret = process.env.SESSION_TOKEN_SECRET?.trim();
-
     if (!secret) {
       throw new Error('SESSION_TOKEN_SECRET must be set');
     }
