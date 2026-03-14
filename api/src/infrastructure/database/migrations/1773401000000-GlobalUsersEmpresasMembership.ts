@@ -64,7 +64,21 @@ export class GlobalUsersEmpresasMembership1773401000000
             "senha_hash" varchar(255) NOT NULL,
             "ativo" boolean NOT NULL DEFAULT (1),
             "created_at" datetime NOT NULL DEFAULT (datetime('now')),
-            "updated_at" datetime NOT NULL DEFAULT (datetime('now'))
+            "updated_at" datetime NOT NULL DEFAULT (datetime('now')),
+            CONSTRAINT "UQ_usuarios_email" UNIQUE ("email")
+          )
+        `,
+      );
+
+      await queryRunner.query(
+        `
+          CREATE TABLE "usuarios_dedup_map" (
+            "legacy_usuario_id" varchar PRIMARY KEY NOT NULL,
+            "canonical_usuario_id" varchar NOT NULL,
+            "empresa_id" varchar(36),
+            "created_at" datetime NOT NULL,
+            "updated_at" datetime NOT NULL,
+            CONSTRAINT "FK_usuarios_dedup_map_canonical" FOREIGN KEY ("canonical_usuario_id") REFERENCES "usuarios_global_tmp" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
           )
         `,
       );
@@ -73,14 +87,68 @@ export class GlobalUsersEmpresasMembership1773401000000
         `
           INSERT INTO "usuarios_global_tmp" ("id", "nome", "email", "senha_hash", "ativo", "created_at", "updated_at")
           SELECT
-            "id",
-            "nome",
-            lower(trim("email")),
-            ('legacy-' || "id"),
-            "ativo",
+            ranked."id",
+            ranked."nome",
+            ranked."normalized_email",
+            ('legacy-' || ranked."id"),
+            ranked."ativo",
+            ranked."created_at",
+            ranked."updated_at"
+          FROM (
+            SELECT
+              u."id",
+              u."nome",
+              lower(trim(u."email")) AS "normalized_email",
+              u."ativo",
+              u."created_at",
+              u."updated_at",
+              ROW_NUMBER() OVER (
+                PARTITION BY lower(trim(u."email"))
+                ORDER BY u."created_at" ASC, u."id" ASC
+              ) AS "dedup_rank"
+            FROM "usuarios" u
+          ) ranked
+          WHERE ranked."dedup_rank" = 1
+            AND ranked."normalized_email" IS NOT NULL
+            AND ranked."normalized_email" <> ''
+        `,
+      );
+
+      await queryRunner.query(
+        `
+          INSERT INTO "usuarios_dedup_map" (
+            "legacy_usuario_id",
+            "canonical_usuario_id",
+            "empresa_id",
             "created_at",
             "updated_at"
-          FROM "usuarios"
+          )
+          SELECT
+            legacy."id" AS "legacy_usuario_id",
+            canonical."id" AS "canonical_usuario_id",
+            legacy."empresa_id",
+            legacy."created_at",
+            legacy."updated_at"
+          FROM "usuarios" legacy
+          INNER JOIN (
+            SELECT
+              ranked."id",
+              ranked."normalized_email"
+            FROM (
+              SELECT
+                u."id",
+                lower(trim(u."email")) AS "normalized_email",
+                ROW_NUMBER() OVER (
+                  PARTITION BY lower(trim(u."email"))
+                  ORDER BY u."created_at" ASC, u."id" ASC
+                ) AS "dedup_rank"
+              FROM "usuarios" u
+            ) ranked
+            WHERE ranked."dedup_rank" = 1
+              AND ranked."normalized_email" IS NOT NULL
+              AND ranked."normalized_email" <> ''
+          ) canonical
+            ON canonical."normalized_email" = lower(trim(legacy."email"))
         `,
       );
 
@@ -101,9 +169,14 @@ export class GlobalUsersEmpresasMembership1773401000000
       await queryRunner.query(
         `
           INSERT OR IGNORE INTO "usuario_empresas" ("usuario_id", "empresa_id", "created_at", "updated_at")
-          SELECT "id", "empresa_id", "created_at", "updated_at"
-          FROM "usuarios"
-          WHERE "empresa_id" IS NOT NULL
+          SELECT
+            map."canonical_usuario_id" AS "usuario_id",
+            map."empresa_id",
+            MIN(map."created_at") AS "created_at",
+            MAX(map."updated_at") AS "updated_at"
+          FROM "usuarios_dedup_map" map
+          WHERE map."empresa_id" IS NOT NULL
+          GROUP BY map."canonical_usuario_id", map."empresa_id"
         `,
       );
 
@@ -222,7 +295,15 @@ export class GlobalUsersEmpresasMembership1773401000000
           SELECT
             "id",
             "empresa_id",
-            "usuario_id",
+            COALESCE(
+              (
+                SELECT map."canonical_usuario_id"
+                FROM "usuarios_dedup_map" map
+                WHERE map."legacy_usuario_id" = "emprestimos"."usuario_id"
+                LIMIT 1
+              ),
+              "usuario_id"
+            ),
             "hardware_id",
             "data_retirada",
             "data_devolucao",
@@ -231,6 +312,8 @@ export class GlobalUsersEmpresasMembership1773401000000
           FROM "emprestimos"
         `,
       );
+
+      await queryRunner.query(`DROP TABLE "usuarios_dedup_map"`);
       await queryRunner.query(`DROP TABLE "emprestimos"`);
       await queryRunner.query(
         `ALTER TABLE "emprestimos_tmp" RENAME TO "emprestimos"`,

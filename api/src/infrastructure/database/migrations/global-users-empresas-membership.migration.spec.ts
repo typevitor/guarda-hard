@@ -144,6 +144,22 @@ describe('GlobalUsersEmpresasMembership migration', () => {
       expect(usuarioColumnNames).toContain('updated_at');
       expect(usuarioColumnNames).not.toContain('empresa_id');
 
+      const usuarioIndexList = await queryRunner.query(`PRAGMA index_list('usuarios')`);
+      const usuarioUniqueIndexes = usuarioIndexList.filter(
+        (idx: { unique: number }) => idx.unique === 1,
+      );
+      const usuarioUniqueIndexColumns = await Promise.all(
+        usuarioUniqueIndexes.map((idx: { name: string }) =>
+          queryRunner!.query(`PRAGMA index_info('${idx.name}')`),
+        ),
+      );
+      expect(
+        usuarioUniqueIndexColumns.some((cols: Array<{ name: string }>) => {
+          const names = cols.map((column) => column.name);
+          return names.length === 1 && names[0] === 'email';
+        }),
+      ).toBe(true);
+
       const usuarioEmpresasColumns = await queryRunner.query(
         `PRAGMA table_info('usuario_empresas')`,
       );
@@ -239,6 +255,128 @@ describe('GlobalUsersEmpresasMembership migration', () => {
       } finally {
         db.close();
       }
+    } finally {
+      if (queryRunner && !queryRunner.isReleased) {
+        await queryRunner.release();
+      }
+
+      if (dataSource?.isInitialized) {
+        await dataSource.destroy();
+      }
+
+      if (tempDirPath) {
+        fs.rmSync(tempDirPath, { recursive: true, force: true });
+      }
+    }
+  });
+
+  it('deduplicates usuarios by normalized email and keeps tenant memberships', async () => {
+    let dataSource: DataSource | undefined;
+    let queryRunner: QueryRunner | undefined;
+    let tempDirPath: string | undefined;
+
+    try {
+      tempDirPath = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'global-users-empresas-dedup-spec-'),
+      );
+      const testDbPath = path.join(tempDirPath, 'database.sqlite');
+
+      dataSource = new DataSource({
+        type: 'better-sqlite3',
+        database: testDbPath,
+        entities: [
+          DepartamentoOrmEntity,
+          UsuarioOrmEntity,
+          HardwareOrmEntity,
+          EmprestimoOrmEntity,
+        ],
+        migrations: [CreateEtapa2Schema1773327116742, SeedDefaultDepartamentos1773327116743],
+        synchronize: false,
+        logging: false,
+      });
+
+      await dataSource.initialize();
+      await dataSource.runMigrations({ transaction: 'none' });
+
+      queryRunner = dataSource.createQueryRunner();
+
+      await queryRunner.query(
+        `
+          INSERT INTO "departamentos" ("id", "empresa_id", "nome", "created_at", "updated_at")
+          VALUES
+            ('dpt-a-dup-0000-0000-000000000001', ?, 'Suporte A', '2026-03-14T00:00:00.000Z', '2026-03-14T00:00:00.000Z'),
+            ('dpt-b-dup-0000-0000-000000000001', ?, 'Suporte B', '2026-03-14T00:00:00.000Z', '2026-03-14T00:00:00.000Z')
+        `,
+        [TENANT_A, TENANT_B],
+      );
+
+      await queryRunner.query(
+        `
+          INSERT INTO "usuarios" ("id", "empresa_id", "departamento_id", "nome", "email", "ativo", "created_at", "updated_at")
+          VALUES
+            ('usr-dup-a-0000-0000-000000000001', ?, 'dpt-a-dup-0000-0000-000000000001', 'Legacy A', '  Shared.User@Example.com  ', 1, '2026-03-14T00:00:00.000Z', '2026-03-14T00:00:00.000Z'),
+            ('usr-dup-b-0000-0000-000000000001', ?, 'dpt-b-dup-0000-0000-000000000001', 'Legacy B', 'shared.user@example.com', 0, '2026-03-14T00:00:00.000Z', '2026-03-14T12:00:00.000Z')
+        `,
+        [TENANT_A, TENANT_B],
+      );
+
+      const migration = new GlobalUsersEmpresasMembership1773401000000();
+      await migration.up(queryRunner);
+
+      const dedupedRows = await queryRunner.query(
+        `
+          SELECT id, nome, email, senha_hash, ativo, created_at, updated_at
+          FROM usuarios
+          WHERE email = 'shared.user@example.com'
+        `,
+      );
+
+      expect(dedupedRows).toEqual([
+        {
+          id: 'usr-dup-a-0000-0000-000000000001',
+          nome: 'Legacy A',
+          email: 'shared.user@example.com',
+          senha_hash: 'legacy-usr-dup-a-0000-0000-000000000001',
+          ativo: 1,
+          created_at: '2026-03-14T00:00:00.000Z',
+          updated_at: '2026-03-14T00:00:00.000Z',
+        },
+      ]);
+
+      const duplicateMemberships = await queryRunner.query(
+        `
+          SELECT usuario_id, empresa_id
+          FROM usuario_empresas
+          WHERE usuario_id = 'usr-dup-a-0000-0000-000000000001'
+          ORDER BY empresa_id ASC
+        `,
+      );
+
+      expect(duplicateMemberships).toEqual([
+        { usuario_id: 'usr-dup-a-0000-0000-000000000001', empresa_id: TENANT_A },
+        { usuario_id: 'usr-dup-a-0000-0000-000000000001', empresa_id: TENANT_B },
+      ]);
+
+      const removedDuplicateRows = await queryRunner.query(
+        `SELECT id FROM usuarios WHERE id = 'usr-dup-b-0000-0000-000000000001'`,
+      );
+      expect(removedDuplicateRows).toEqual([]);
+
+      const usuarioIndexList = await queryRunner.query(`PRAGMA index_list('usuarios')`);
+      const usuarioUniqueIndexes = usuarioIndexList.filter(
+        (idx: { unique: number }) => idx.unique === 1,
+      );
+      const usuarioUniqueIndexColumns = await Promise.all(
+        usuarioUniqueIndexes.map((idx: { name: string }) =>
+          queryRunner!.query(`PRAGMA index_info('${idx.name}')`),
+        ),
+      );
+      expect(
+        usuarioUniqueIndexColumns.some((cols: Array<{ name: string }>) => {
+          const names = cols.map((column) => column.name);
+          return names.length === 1 && names[0] === 'email';
+        }),
+      ).toBe(true);
     } finally {
       if (queryRunner && !queryRunner.isReleased) {
         await queryRunner.release();
