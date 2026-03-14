@@ -8,7 +8,17 @@ type SessionPayload = {
 
 @Injectable()
 export class SessionTokenService {
-  private readonly secret = process.env.SESSION_TOKEN_SECRET ?? 'dev-session-secret';
+  private readonly secret: string;
+
+  constructor() {
+    const secret = process.env.SESSION_TOKEN_SECRET?.trim();
+
+    if (!secret) {
+      throw new Error('SESSION_TOKEN_SECRET must be set');
+    }
+
+    this.secret = secret;
+  }
 
   sign(payload: SessionPayload): string {
     const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');

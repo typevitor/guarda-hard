@@ -29,7 +29,6 @@ type UsuarioHttpResponse = {
   departamentoId: string;
   nome: string;
   email: string;
-  senhaHash: string;
   ativo: boolean;
   createdAt: string;
   updatedAt: string;
@@ -115,7 +114,6 @@ export class UsuariosController {
       departamentoId: entity.departamentoId,
       nome: entity.nome,
       email: entity.email,
-      senhaHash: entity.senhaHash,
       ativo: entity.ativo,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),

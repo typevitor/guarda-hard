@@ -32,43 +32,42 @@ export class AuthService {
   }): Promise<{ userId: string }> {
     const nome = input.nome.trim();
     const email = input.email.trim().toLowerCase();
-
-    const empresas = (await this.dataSource.query(
-      `SELECT id FROM empresas WHERE id = ? LIMIT 1`,
-      [input.empresaId],
-    )) as Array<{ id: string }>;
-
-    if (empresas.length === 0) {
-      throw new BadRequestException('Empresa nao encontrada');
-    }
-
-    const duplicate = (await this.dataSource.query(
-      `SELECT id FROM usuarios WHERE email = ? LIMIT 1`,
-      [email],
-    )) as Array<{ id: string }>;
-
-    if (duplicate.length > 0) {
-      throw new ConflictException('Email ja cadastrado');
-    }
-
     const userId = randomUUID();
     const senhaHash = await this.passwordHasher.hash(input.senha);
 
-    await this.dataSource.query(
-      `
-      INSERT INTO usuarios (id, nome, email, senha_hash, ativo, created_at, updated_at)
-      VALUES (?, ?, ?, ?, 1, datetime('now'), datetime('now'))
-      `,
-      [userId, nome, email, senhaHash],
-    );
+    await this.dataSource.transaction(async (manager) => {
+      const empresas = (await manager.query(`SELECT id FROM empresas WHERE id = ? LIMIT 1`, [
+        input.empresaId,
+      ])) as Array<{ id: string }>;
 
-    await this.dataSource.query(
-      `
-      INSERT INTO usuario_empresas (usuario_id, empresa_id, created_at, updated_at)
-      VALUES (?, ?, datetime('now'), datetime('now'))
-      `,
-      [userId, input.empresaId],
-    );
+      if (empresas.length === 0) {
+        throw new BadRequestException('Empresa nao encontrada');
+      }
+
+      const duplicate = (await manager.query(`SELECT id FROM usuarios WHERE email = ? LIMIT 1`, [
+        email,
+      ])) as Array<{ id: string }>;
+
+      if (duplicate.length > 0) {
+        throw new ConflictException('Email ja cadastrado');
+      }
+
+      await manager.query(
+        `
+        INSERT INTO usuarios (id, nome, email, senha_hash, ativo, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 1, datetime('now'), datetime('now'))
+        `,
+        [userId, nome, email, senhaHash],
+      );
+
+      await manager.query(
+        `
+        INSERT INTO usuario_empresas (usuario_id, empresa_id, created_at, updated_at)
+        VALUES (?, ?, datetime('now'), datetime('now'))
+        `,
+        [userId, input.empresaId],
+      );
+    });
 
     return { userId };
   }
