@@ -36,6 +36,18 @@ export const authEmpresasResponseSchema = z.object({
   items: z.array(authEmpresaSchema),
 });
 
+export const selectEmpresaSchema = z.object({
+  empresaId: z.string().uuid(),
+});
+
+export function createSelectEmpresaSchema(allowedEmpresaIds: string[]) {
+  return selectEmpresaSchema.refine((payload) => allowedEmpresaIds.includes(payload.empresaId), {
+    message: "Selecione uma empresa valida",
+    path: ["empresaId"],
+  });
+}
+
 export type LoginPayload = z.infer<typeof loginSchema>;
 export type RegisterPayload = z.infer<typeof registerBaseSchema>;
 export type AuthEmpresa = z.infer<typeof authEmpresaSchema>;
+export type SelectEmpresaPayload = z.infer<typeof selectEmpresaSchema>;

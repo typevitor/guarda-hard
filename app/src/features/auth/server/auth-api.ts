@@ -4,9 +4,11 @@ import {
   authEmpresasResponseSchema,
   loginSchema,
   registerBaseSchema,
+  selectEmpresaSchema,
   type AuthEmpresa,
   type LoginPayload,
   type RegisterPayload,
+  type SelectEmpresaPayload,
 } from "../schemas/auth-schema";
 
 export async function listAuthEmpresasServer(): Promise<AuthEmpresa[]> {
@@ -41,5 +43,28 @@ export async function registerServer(payload: RegisterPayload): Promise<void> {
     body: parsedPayload,
     responseType: "void",
     fallbackErrorMessage: "Nao foi possivel registrar",
+  });
+}
+
+export async function listMinhasEmpresasServer(): Promise<AuthEmpresa[]> {
+  const payload = await apiClient({
+    path: "/auth/minhas-empresas",
+    method: "GET",
+    fallbackErrorMessage: "Nao foi possivel carregar empresas",
+  });
+
+  const parsed = authEmpresasResponseSchema.parse(payload);
+  return parsed.items;
+}
+
+export async function selectEmpresaServer(payload: SelectEmpresaPayload): Promise<void> {
+  const parsedPayload = selectEmpresaSchema.parse(payload);
+
+  await apiClient({
+    path: "/auth/select-empresa",
+    method: "POST",
+    body: parsedPayload,
+    responseType: "void",
+    fallbackErrorMessage: "Nao foi possivel selecionar empresa",
   });
 }
