@@ -574,7 +574,7 @@ Tarefas paralelas:
 # Etapa 11 — Autenticacao global + selecao de empresa
 
 - [x] Task 1 - Migration global users + empresas + membership
-- [ ] Task 2 - Modulo empresas para listagem
+- [x] Task 2 - Modulo empresas para listagem
 - [ ] Task 3 - Modulo auth com sessao em duas fases
 - [ ] Task 4 - Home de autenticacao em /
 - [ ] Task 5 - Pagina de selecao de empresa
