@@ -16,3 +16,4 @@ api/data/*.sqlite
 .vscode/
 .DS_Store
 .worktrees/
+.playwright-cli/
