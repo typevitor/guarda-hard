@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-
 import { AuthPage } from "@/features/auth/components/auth-page";
 import type { LoginPayload, RegisterPayload } from "@/features/auth/schemas/auth-schema";
 import {
@@ -12,7 +10,6 @@ async function submitLogin(values: LoginPayload): Promise<void> {
   "use server";
 
   await loginServer(values);
-  redirect("/select-company");
 }
 
 async function submitRegister(values: RegisterPayload): Promise<void> {

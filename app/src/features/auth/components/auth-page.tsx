@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { FeedbackBanner } from "@/components/ui/feedback-banner";
 
@@ -15,8 +16,14 @@ type AuthPageProps = {
 };
 
 export function AuthPage({ empresas, onLoginSubmit, onRegisterSubmit }: AuthPageProps) {
+  const router = useRouter();
   const [activePanel, setActivePanel] = useState<"login" | "register">("login");
   const [registerFeedback, setRegisterFeedback] = useState<string | null>(null);
+
+  const handleLoginSubmit = async (values: LoginPayload): Promise<void> => {
+    await onLoginSubmit(values);
+    router.push("/select-company");
+  };
 
   const handleRegisterSubmit = async (values: RegisterPayload): Promise<void> => {
     await onRegisterSubmit(values);
@@ -58,7 +65,7 @@ export function AuthPage({ empresas, onLoginSubmit, onRegisterSubmit }: AuthPage
       {activePanel === "login" ? (
         <div className="auth-panel" role="tabpanel" aria-label="Painel de login">
           {registerFeedback ? <FeedbackBanner type="success" message={registerFeedback} /> : null}
-          <LoginForm onSubmit={onLoginSubmit} />
+          <LoginForm onSubmit={handleLoginSubmit} />
         </div>
       ) : (
         <div className="auth-panel" role="tabpanel" aria-label="Painel de registro">

@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-import { getApiBaseUrl } from "@/lib/api/env";
+import { usePathname, useRouter } from "next/navigation";
 
 type MenuItem = {
   href: string;
@@ -26,15 +24,16 @@ function isActive(pathname: string, href: string): boolean {
 
 export function SidebarMenu({ compact = false }: { compact?: boolean }) {
   const pathname = usePathname() ?? "/";
+  const router = useRouter();
 
   const handleLogout = async (): Promise<void> => {
     try {
-      await fetch(`${getApiBaseUrl()}/auth/logout`, {
+      await fetch("/auth/logout", {
         method: "POST",
-        credentials: "include",
       });
     } finally {
-      window.location.assign("/");
+      router.replace("/");
+      router.refresh();
     }
   };
 

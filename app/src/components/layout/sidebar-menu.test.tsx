@@ -12,6 +12,10 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(),
+  useRouter: vi.fn(() => ({
+    replace: vi.fn(),
+    refresh: vi.fn(),
+  })),
 }));
 
 import { usePathname } from "next/navigation";
