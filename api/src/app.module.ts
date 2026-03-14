@@ -8,6 +8,7 @@ import { EmprestimosModule } from './modules/emprestimos/emprestimos.module';
 import { DepartamentosModule } from './modules/departamentos/departamentos.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
 import { RelatoriosModule } from './modules/relatorios/relatorios.module';
+import { EmpresasModule } from './modules/empresas/empresas.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RelatoriosModule } from './modules/relatorios/relatorios.module';
     DepartamentosModule,
     UsuariosModule,
     RelatoriosModule,
+    EmpresasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -27,6 +27,10 @@ vi.mock('../modules/relatorios/relatorios.module', () => ({
   RelatoriosModule: class RelatoriosModule {},
 }));
 
+vi.mock('../modules/empresas/empresas.module', () => ({
+  EmpresasModule: class EmpresasModule {},
+}));
+
 describe('TenantModule wiring', () => {
   it('resolves TenantContext from AppModule', async () => {
     const moduleRef = await Test.createTestingModule({
