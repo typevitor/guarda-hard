@@ -44,6 +44,19 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
+## Database migrations and local recovery
+
+The API now applies pending migrations automatically during startup. If your local
+database was created before recent schema changes and runtime errors persist,
+run manual recovery once:
+
+```bash
+pnpm --filter @guarda-hard/api migration:run
+```
+
+Use this command when recovering an old local SQLite file or after pulling
+migration-heavy changes and startup cannot self-heal the environment.
+
 ## Run tests
 
 ```bash
