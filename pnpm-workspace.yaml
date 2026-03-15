@@ -4,6 +4,7 @@ packages:
   - packages/*
 allowBuilds:
   '@nestjs/core': false
+  bcrypt: true
   better-sqlite3: true
   es5-ext: true
   esbuild: false
