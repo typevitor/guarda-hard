@@ -17,11 +17,12 @@ export class CreateEtapa2Schema1773327116742 implements MigrationInterface {
       `CREATE TABLE IF NOT EXISTS "emprestimos" ("id" varchar PRIMARY KEY NOT NULL, "empresa_id" varchar(36) NOT NULL, "usuario_id" varchar(36) NOT NULL, "hardware_id" varchar(36) NOT NULL, "data_retirada" datetime NOT NULL, "data_devolucao" datetime, "created_at" datetime NOT NULL DEFAULT (datetime('now')), "updated_at" datetime NOT NULL DEFAULT (datetime('now')))`,
     );
 
-    const usuariosInfo: Array<{ name: string }> = await queryRunner.query(
+    const usuariosInfo = (await queryRunner.query(
       `PRAGMA table_info('usuarios')`,
-    );
-    const usuariosFKs: Array<{ from: string; table: string }> =
-      await queryRunner.query(`PRAGMA foreign_key_list('usuarios')`);
+    )) as Array<{ name: string }>;
+    const usuariosFKs = (await queryRunner.query(
+      `PRAGMA foreign_key_list('usuarios')`,
+    )) as Array<{ from: string; table: string }>;
     if (
       usuariosInfo.some((col) => col.name === 'empresa_id') &&
       !usuariosFKs.some(
@@ -40,8 +41,9 @@ export class CreateEtapa2Schema1773327116742 implements MigrationInterface {
       );
     }
 
-    const emprestimosFKs: Array<{ from: string; table: string }> =
-      await queryRunner.query(`PRAGMA foreign_key_list('emprestimos')`);
+    const emprestimosFKs = (await queryRunner.query(
+      `PRAGMA foreign_key_list('emprestimos')`,
+    )) as Array<{ from: string; table: string }>;
     if (
       !emprestimosFKs.some(
         (fk) => fk.from === 'usuario_id' && fk.table === 'usuarios',

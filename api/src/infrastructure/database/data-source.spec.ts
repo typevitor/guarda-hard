@@ -24,20 +24,49 @@ async function loadDataSourceWithCwd(cwd: string) {
   }
 }
 
+async function loadDataSourceWithDefaultPath() {
+  const savedPath = process.env.DATABASE_PATH;
+  delete process.env.DATABASE_PATH;
+
+  try {
+    const module = (await import(
+      `${dataSourceFileUrl}?default=${Date.now()}`
+    )) as {
+      AppDataSource: typeof AppDataSource;
+    };
+
+    return module.AppDataSource;
+  } finally {
+    if (savedPath !== undefined) {
+      process.env.DATABASE_PATH = savedPath;
+    }
+  }
+}
+
 describe('AppDataSource', () => {
-  it('uses sqlite and points to api/data/guarda-hard.sqlite', () => {
-    expect(AppDataSource.options.type).toBe('better-sqlite3');
-    expect(String(AppDataSource.options.database)).toContain(
+  it('uses sqlite and points to api/data/guarda-hard.sqlite', async () => {
+    const dataSource = await loadDataSourceWithDefaultPath();
+    expect(dataSource.options.type).toBe('better-sqlite3');
+    expect(String(dataSource.options.database)).toContain(
       'api/data/guarda-hard.sqlite',
     );
   });
 
   it('keeps api/data path even when loaded from workspace root cwd', async () => {
-    const dataSourceFromWorkspaceCwd =
-      await loadDataSourceWithCwd(workspaceRoot);
+    const savedPath = process.env.DATABASE_PATH;
+    delete process.env.DATABASE_PATH;
 
-    expect(String(dataSourceFromWorkspaceCwd.options.database)).toContain(
-      'api/data/guarda-hard.sqlite',
-    );
+    try {
+      const dataSourceFromWorkspaceCwd =
+        await loadDataSourceWithCwd(workspaceRoot);
+
+      expect(String(dataSourceFromWorkspaceCwd.options.database)).toContain(
+        'api/data/guarda-hard.sqlite',
+      );
+    } finally {
+      if (savedPath !== undefined) {
+        process.env.DATABASE_PATH = savedPath;
+      }
+    }
   });
 });
