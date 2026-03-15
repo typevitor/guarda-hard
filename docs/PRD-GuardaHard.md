@@ -579,4 +579,4 @@ Tarefas paralelas:
 - [x] Task 4 - Home de autenticacao em /
 - [x] Task 5 - Pagina de selecao de empresa
 - [x] Task 6 - Protecao global de rotas por fase
-- [ ] Task 7 - Verificacao final e quality gate
+- [x] Task 7 - Verificacao final e quality gate

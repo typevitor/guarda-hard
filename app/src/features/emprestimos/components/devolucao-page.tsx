@@ -1,52 +1,42 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
-import { FeedbackBanner } from "@/components/ui/feedback-banner";
-import { FilterBar } from "@/components/ui/filter-bar";
-import { Modal } from "@/components/ui/modal";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { FeedbackBanner } from '@/components/ui/feedback-banner';
+import { FilterBar } from '@/components/ui/filter-bar';
+import { Modal } from '@/components/ui/modal';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
-import { DevolucaoForm } from "../forms/devolucao-form";
-import type { DevolucoesListQuery } from "../schemas/devolucoes-list-query-schema";
-import type { DevolucaoPayload } from "../schemas/emprestimo-schema";
-import type { EmprestimoListResponse } from "../server/emprestimos-list-api";
-import type { DevolucaoSelectorOption } from "../server/devolucoes-open-selector-api";
-import { DevolucoesList } from "./devolucoes-list";
+import { DevolucaoForm } from '../forms/devolucao-form';
+import type { DevolucoesListQuery } from '../schemas/devolucoes-list-query-schema';
+import type { DevolucaoPayload } from '../schemas/emprestimo-schema';
+import type { EmprestimoListResponse } from '../server/emprestimos-list-api';
+import { DevolucoesList } from './devolucoes-list';
 
 type DevolucaoPageProps = {
   onSubmit: (values: DevolucaoPayload) => Promise<void>;
-  onLoadOpenEmprestimos: (
-    page: number,
-    search?: string,
-  ) => Promise<{ items: DevolucaoSelectorOption[]; page: number; totalPages: number }>;
   list: EmprestimoListResponse;
   query: DevolucoesListQuery;
 };
 
-export function DevolucaoPage({
-  onSubmit,
-  onLoadOpenEmprestimos,
-  list,
-  query,
-}: DevolucaoPageProps) {
+export function DevolucaoPage({ onSubmit, list, query }: DevolucaoPageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeQuery, setActiveQuery] = useState(query);
   const [status, setStatus] = useState<{
-    type: "success" | "error";
+    type: 'success' | 'error';
     message: string;
   } | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
 
   const pushQuery = (nextQuery: DevolucoesListQuery): void => {
     const params = new URLSearchParams();
-    params.set("page", String(nextQuery.page));
-    params.set("status", "returned");
+    params.set('page', String(nextQuery.page));
+    params.set('status', 'returned');
     if (nextQuery.search) {
-      params.set("search", nextQuery.search);
+      params.set('search', nextQuery.search);
     }
     router.push(`${pathname}?${params.toString()}`);
   };
@@ -57,11 +47,11 @@ export function DevolucaoPage({
     try {
       await onSubmit(values);
       setIsModalOpen(false);
-      setStatus({ type: "success", message: "Devolucao registrada com sucesso" });
+      setStatus({ type: 'success', message: 'Devolucao registrada com sucesso' });
       router.refresh();
     } catch {
-      setModalError("Nao foi possivel registrar devolucao");
-      throw new Error("submit failed");
+      setModalError('Nao foi possivel registrar devolucao');
+      throw new Error('submit failed');
     }
   };
 
@@ -96,13 +86,13 @@ export function DevolucaoPage({
             ...activeQuery,
             search: value,
             page: 1,
-            status: "returned" as const,
+            status: 'returned' as const,
           };
           setActiveQuery(nextQuery);
           pushQuery(nextQuery);
         }}
         onClearFilters={() => {
-          const nextQuery = { ...activeQuery, search: "", page: 1, status: "returned" as const };
+          const nextQuery = { ...activeQuery, search: '', page: 1, status: 'returned' as const };
           setActiveQuery(nextQuery);
           pushQuery(nextQuery);
         }}
@@ -114,7 +104,7 @@ export function DevolucaoPage({
         page={activeQuery.page}
         totalPages={Math.max(list.totalPages, 1)}
         onPageChange={(page) => {
-          const nextQuery = { ...activeQuery, page, status: "returned" as const };
+          const nextQuery = { ...activeQuery, page, status: 'returned' as const };
           setActiveQuery(nextQuery);
           pushQuery(nextQuery);
         }}
@@ -122,7 +112,7 @@ export function DevolucaoPage({
 
       <Modal open={isModalOpen} onOpenChange={setIsModalOpen} title="Nova devolucao">
         {modalError ? <FeedbackBanner type="error" message={modalError} /> : null}
-        <DevolucaoForm onSubmit={handleSubmit} loadOptions={onLoadOpenEmprestimos} />
+        <DevolucaoForm onSubmit={handleSubmit} />
       </Modal>
     </section>
   );

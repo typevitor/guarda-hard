@@ -1,24 +1,21 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from 'react';
 
-import type { DevolucaoPayload } from "../schemas/emprestimo-schema";
-import type { DevolucaoSelectorOption } from "../server/devolucoes-open-selector-api";
+import { fetchOpenEmprestimosForDevolucao } from '../client/devolucoes-open-selector-client';
+import type { DevolucaoPayload } from '../schemas/emprestimo-schema';
+import type { DevolucaoSelectorOption } from '../client/devolucoes-open-selector-client';
 
 type DevolucaoFormProps = {
   onSubmit: (values: DevolucaoPayload) => Promise<void>;
-  loadOptions: (
-    page: number,
-    search?: string,
-  ) => Promise<{ items: DevolucaoSelectorOption[]; page: number; totalPages: number }>;
 };
 
-export function DevolucaoForm({ onSubmit, loadOptions }: DevolucaoFormProps) {
-  const [search, setSearch] = useState("");
+export function DevolucaoForm({ onSubmit }: DevolucaoFormProps) {
+  const [search, setSearch] = useState('');
   const [options, setOptions] = useState<DevolucaoSelectorOption[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -32,19 +29,19 @@ export function DevolucaoForm({ onSubmit, loadOptions }: DevolucaoFormProps) {
       setError(null);
 
       try {
-        const result = await loadOptions(1, search || undefined);
+        const result = await fetchOpenEmprestimosForDevolucao(1, search || undefined);
         setOptions(result.items);
         setPage(result.page);
         setTotalPages(result.totalPages);
       } catch {
-        setError("Nao foi possivel carregar emprestimos em aberto");
+        setError('Nao foi possivel carregar emprestimos em aberto');
       } finally {
         setLoading(false);
       }
     };
 
     void load();
-  }, [loadOptions, search]);
+  }, [search]);
 
   const selectedValue = useMemo(() => selectedId, [selectedId]);
 
@@ -57,12 +54,12 @@ export function DevolucaoForm({ onSubmit, loadOptions }: DevolucaoFormProps) {
     setError(null);
 
     try {
-      const result = await loadOptions(page + 1, search || undefined);
+      const result = await fetchOpenEmprestimosForDevolucao(page + 1, search || undefined);
       setOptions((current) => [...current, ...result.items]);
       setPage(result.page);
       setTotalPages(result.totalPages);
     } catch {
-      setError("Nao foi possivel carregar emprestimos em aberto");
+      setError('Nao foi possivel carregar emprestimos em aberto');
     } finally {
       setLoading(false);
     }
