@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #f3f6fb;
@@ -196,7 +196,7 @@ body {
 
 .list-page {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .list-page-header {
@@ -215,8 +215,9 @@ body {
   border: 1px solid var(--primary-strong);
   background: var(--primary);
   color: #fff;
-  border-radius: 0.6rem;
-  padding: 0.55rem 0.9rem;
+  border-radius: 0.65rem;
+  min-height: 2.25rem;
+  padding: 0.55rem 0.95rem;
   font-weight: 700;
 }
 
@@ -228,18 +229,27 @@ body {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--foreground);
-  border-radius: 0.6rem;
-  padding: 0.5rem 0.8rem;
+  border-radius: 0.65rem;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.85rem;
+}
+
+.btn-secondary {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  border-radius: 0.65rem;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.85rem;
 }
 
 .filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.7rem;
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) auto;
+  gap: 0.6rem;
+  padding: 0.8rem;
   border: 1px solid var(--border);
-  border-radius: 0.7rem;
+  border-radius: 0.8rem;
   background: linear-gradient(180deg, var(--surface), var(--surface-muted));
 }
 
@@ -248,8 +258,30 @@ body {
 }
 
 .filter-bar input {
-  min-width: 220px;
-  flex: 1;
+  min-width: 0;
+}
+
+.filter-presets {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.filter-chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background: var(--surface);
+  color: var(--foreground);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.filter-chip.is-active {
+  border-color: var(--primary-strong);
+  background: color-mix(in srgb, var(--primary) 16%, white);
+  color: var(--primary-strong);
 }
 
 .list-table-shell {
@@ -282,6 +314,12 @@ body {
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.pagination-controls button {
+  min-height: 2.2rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 0.6rem;
 }
 
 .pagination-label {
@@ -345,6 +383,25 @@ body {
   padding: 1rem;
 }
 
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+}
+
+button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, white);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .dashboard-grid {
   display: grid;
   gap: 1rem;
@@ -395,6 +452,12 @@ body {
   }
 
   .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .filter-bar {
     grid-template-columns: 1fr;
   }
 }

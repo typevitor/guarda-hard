@@ -20,6 +20,15 @@ vi.mock('../client/devolucoes-open-selector-client', () => ({
 import { DevolucaoPage } from './devolucao-page';
 
 describe('DevolucaoPage listing flow', () => {
+  const now = new Date();
+  const todayIso = now.toISOString().slice(0, 10);
+  const monthIndex = now.getMonth();
+  const inMonthDate = new Date(now.getFullYear(), monthIndex, Math.min(10, now.getDate() || 10));
+  const inMonthIso = inMonthDate.toISOString().slice(0, 10);
+  const outsideMonthIso = new Date(now.getFullYear(), monthIndex - 1, 15)
+    .toISOString()
+    .slice(0, 10);
+
   const baseList = {
     items: [
       {
@@ -28,7 +37,27 @@ describe('DevolucaoPage listing flow', () => {
         usuarioId: 'user-1',
         hardwareId: 'hw-1',
         dataRetirada: '2026-03-01',
-        dataDevolucao: '2026-03-05',
+        dataDevolucao: todayIso,
+        createdAt: '',
+        updatedAt: '',
+      },
+      {
+        id: 'emp-r-2',
+        empresaId: 'emp-1',
+        usuarioId: 'user-2',
+        hardwareId: 'hw-2',
+        dataRetirada: '2026-02-01',
+        dataDevolucao: inMonthIso,
+        createdAt: '',
+        updatedAt: '',
+      },
+      {
+        id: 'emp-r-3',
+        empresaId: 'emp-1',
+        usuarioId: 'user-3',
+        hardwareId: 'hw-3',
+        dataRetirada: '2026-01-01',
+        dataDevolucao: outsideMonthIso,
         createdAt: '',
         updatedAt: '',
       },
@@ -68,17 +97,22 @@ describe('DevolucaoPage listing flow', () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     render(<DevolucaoPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'New' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nova devolucao' }));
     await screen.findByRole('option', { name: 'emp-1 - usuario user-1 - hardware hw-1' });
 
-    expect(
-      screen.getByRole('button', { name: 'Registrar devolucao' }).hasAttribute('disabled'),
-    ).toBe(true);
+    expect(screen.getByRole('button', { name: 'Salvar' }).hasAttribute('disabled')).toBe(true);
 
     fireEvent.change(screen.getByLabelText('Emprestimo'), { target: { value: 'emp-1' } });
-    expect(
-      screen.getByRole('button', { name: 'Registrar devolucao' }).hasAttribute('disabled'),
-    ).toBe(false);
+    expect(screen.getByRole('button', { name: 'Salvar' }).hasAttribute('disabled')).toBe(false);
+
+    expect(screen.getByRole('button', { name: 'Todos' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Devolvidos hoje' }).hasAttribute('disabled')).toBe(
+      false,
+    );
+    expect(screen.getByRole('button', { name: 'Esta semana' }).hasAttribute('disabled')).toBe(
+      false,
+    );
+    expect(screen.getByRole('button', { name: 'Este mes' }).hasAttribute('disabled')).toBe(false);
   });
 
   it('submits selected id to devolucao endpoint path contract', async () => {
@@ -91,10 +125,10 @@ describe('DevolucaoPage listing flow', () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     render(<DevolucaoPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'New' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nova devolucao' }));
     await screen.findByRole('option', { name: 'emp-2 - usuario user-2 - hardware hw-2' });
     fireEvent.change(screen.getByLabelText('Emprestimo'), { target: { value: 'emp-2' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Registrar devolucao' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith({ emprestimoId: 'emp-2' });
@@ -112,10 +146,10 @@ describe('DevolucaoPage listing flow', () => {
     const onSubmit = vi.fn().mockRejectedValue(new Error('stale'));
     render(<DevolucaoPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'New' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nova devolucao' }));
     await screen.findByRole('option', { name: 'emp-3 - usuario user-3 - hardware hw-3' });
     fireEvent.change(screen.getByLabelText('Emprestimo'), { target: { value: 'emp-3' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Registrar devolucao' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByText('Nao foi possivel registrar devolucao')).toBeTruthy();
     expect(screen.getByRole('dialog', { name: 'Nova devolucao' })).toBeTruthy();
@@ -137,7 +171,7 @@ describe('DevolucaoPage listing flow', () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     render(<DevolucaoPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'New' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nova devolucao' }));
     await screen.findByRole('option', { name: 'emp-4 - usuario user-4 - hardware hw-4' });
     fireEvent.click(screen.getByRole('button', { name: 'Carregar mais' }));
 
@@ -155,10 +189,47 @@ describe('DevolucaoPage listing flow', () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     render(<DevolucaoPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'New' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nova devolucao' }));
     expect(await screen.findByText('Nao ha emprestimos em aberto para devolucao.')).toBeTruthy();
-    expect(
-      screen.getByRole('button', { name: 'Registrar devolucao' }).hasAttribute('disabled'),
-    ).toBe(true);
+    expect(screen.getByRole('button', { name: 'Salvar' }).hasAttribute('disabled')).toBe(true);
+  });
+
+  it('keeps status returned on search, pagination and preset selection', () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <DevolucaoPage onSubmit={onSubmit} list={baseList} query={{ ...baseQuery, search: 'u1' }} />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Todos' }));
+    expect(pushMock).toHaveBeenLastCalledWith('/devolucao?page=1&status=returned&search=u1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Devolvidos hoje' }));
+    expect(pushMock).toHaveBeenLastCalledWith('/devolucao?page=1&status=returned&search=u1');
+
+    fireEvent.change(screen.getByLabelText('Buscar'), { target: { value: 'u2' } });
+    expect(pushMock).toHaveBeenLastCalledWith('/devolucao?page=1&status=returned&search=u2');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Proxima' }));
+    expect(pushMock).toHaveBeenLastCalledWith('/devolucao?page=2&status=returned&search=u2');
+  });
+
+  it('filters devolucoes client-side by selected date preset', () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<DevolucaoPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
+
+    expect(screen.getByRole('cell', { name: 'user-1' })).toBeTruthy();
+    expect(screen.getByRole('cell', { name: 'user-2' })).toBeTruthy();
+    expect(screen.getByRole('cell', { name: 'user-3' })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Devolvidos hoje' }));
+
+    expect(screen.getByRole('cell', { name: 'user-1' })).toBeTruthy();
+    expect(screen.queryByRole('cell', { name: 'user-3' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Este mes' }));
+
+    expect(screen.getByRole('cell', { name: 'user-1' })).toBeTruthy();
+    expect(screen.getByRole('cell', { name: 'user-2' })).toBeTruthy();
+    expect(screen.queryByRole('cell', { name: 'user-3' })).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 type PaginationControlsProps = {
   page: number;
@@ -12,12 +12,8 @@ export function PaginationControls({ page, totalPages, onPageChange }: Paginatio
 
   return (
     <nav className="pagination-controls" aria-label="Paginacao">
-      <button
-        type="button"
-        onClick={() => onPageChange(safePage - 1)}
-        disabled={safePage <= 1}
-      >
-        Pagina anterior
+      <button type="button" onClick={() => onPageChange(safePage - 1)} disabled={safePage <= 1}>
+        Anterior
       </button>
       <p className="pagination-label">
         Pagina {safePage} de {safeTotalPages}
@@ -27,7 +23,7 @@ export function PaginationControls({ page, totalPages, onPageChange }: Paginatio
         onClick={() => onPageChange(safePage + 1)}
         disabled={safePage >= safeTotalPages}
       >
-        Proxima pagina
+        Proxima
       </button>
     </nav>
   );

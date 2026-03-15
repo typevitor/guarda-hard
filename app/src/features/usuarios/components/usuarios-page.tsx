@@ -1,19 +1,27 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
-import { FeedbackBanner } from "@/components/ui/feedback-banner";
-import { FilterBar } from "@/components/ui/filter-bar";
-import { Modal } from "@/components/ui/modal";
-import { PaginationControls } from "@/components/ui/pagination-controls";
-import type { DepartamentoOption } from "@/features/departamentos/server/departamentos-options-api";
+import { FeedbackBanner } from '@/components/ui/feedback-banner';
+import { FilterBar } from '@/components/ui/filter-bar';
+import { Modal } from '@/components/ui/modal';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import type { DepartamentoOption } from '@/features/departamentos/server/departamentos-options-api';
 
-import { UsuarioForm } from "../forms/usuario-form";
-import type { UsuariosListQuery } from "../schemas/usuarios-list-query-schema";
-import type { UsuarioPayload } from "../schemas/usuario-schema";
-import type { UsuarioListResponse } from "../server/usuarios-list-api";
-import { UsuariosList } from "./usuarios-list";
+import { UsuarioForm } from '../forms/usuario-form';
+import type { UsuariosListQuery } from '../schemas/usuarios-list-query-schema';
+import type { UsuarioPayload } from '../schemas/usuario-schema';
+import type { UsuarioListResponse } from '../server/usuarios-list-api';
+import { UsuariosList } from './usuarios-list';
+
+type UsuarioPresetId = 'all' | 'withDepartment' | 'withoutDepartment';
+
+const usuarioPresets: { id: UsuarioPresetId; label: string }[] = [
+  { id: 'all', label: 'Todos' },
+  { id: 'withDepartment', label: 'Com departamento' },
+  { id: 'withoutDepartment', label: 'Sem departamento' },
+];
 
 type UsuariosPageProps = {
   onSubmit: (values: UsuarioPayload) => Promise<void>;
@@ -35,16 +43,17 @@ export function UsuariosPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeQuery, setActiveQuery] = useState(query);
   const [status, setStatus] = useState<{
-    type: "success" | "error";
+    type: 'success' | 'error';
     message: string;
   } | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [activePresetId, setActivePresetId] = useState<UsuarioPresetId>('all');
 
   const pushQuery = (nextQuery: UsuariosListQuery): void => {
     const params = new URLSearchParams();
-    params.set("page", String(nextQuery.page));
+    params.set('page', String(nextQuery.page));
     if (nextQuery.search) {
-      params.set("search", nextQuery.search);
+      params.set('search', nextQuery.search);
     }
     router.push(`${pathname}?${params.toString()}`);
   };
@@ -55,12 +64,32 @@ export function UsuariosPage({
     try {
       await onSubmit(values);
       setIsModalOpen(false);
-      setStatus({ type: "success", message: "Usuario criado com sucesso" });
+      setStatus({ type: 'success', message: 'Usuario criado com sucesso' });
       router.refresh();
-    } catch {
-      setModalError("Nao foi possivel criar usuario");
-      throw new Error("submit failed");
+    } catch (error) {
+      setModalError('Nao foi possivel criar usuario');
+      throw error;
     }
+  };
+
+  const filteredItems =
+    activePresetId === 'withDepartment'
+      ? list.items.filter((item) => item.departamentoId.trim() !== '')
+      : activePresetId === 'withoutDepartment'
+        ? list.items.filter((item) => item.departamentoId.trim() === '')
+        : list.items;
+
+  const applyPreset = (presetId: UsuarioPresetId): void => {
+    const nextQuery = {
+      ...activeQuery,
+      page: 1,
+      departamentoId: '',
+      ativo: undefined,
+    };
+
+    setActivePresetId(presetId);
+    setActiveQuery(nextQuery);
+    pushQuery(nextQuery);
   };
 
   return (
@@ -79,7 +108,7 @@ export function UsuariosPage({
               setIsModalOpen(true);
             }}
           >
-            New
+            Novo usuario
           </button>
         </div>
       </div>
@@ -95,13 +124,25 @@ export function UsuariosPage({
           pushQuery(nextQuery);
         }}
         onClearFilters={() => {
-          const nextQuery = { ...activeQuery, search: "", page: 1 };
+          const nextQuery = {
+            ...activeQuery,
+            search: '',
+            page: 1,
+            departamentoId: '',
+            ativo: undefined,
+          };
+          setActivePresetId('all');
           setActiveQuery(nextQuery);
           pushQuery(nextQuery);
         }}
+        presets={usuarioPresets}
+        activePresetId={activePresetId}
+        onPresetChange={(presetId) => {
+          applyPreset(presetId as UsuarioPresetId);
+        }}
       />
 
-      <UsuariosList items={list.items} />
+      <UsuariosList items={filteredItems} />
 
       <PaginationControls
         page={activeQuery.page}
@@ -120,6 +161,9 @@ export function UsuariosPage({
         {modalError ? <FeedbackBanner type="error" message={modalError} /> : null}
         <UsuarioForm
           onSubmit={handleSubmit}
+          onCancel={() => {
+            setIsModalOpen(false);
+          }}
           departamentoOptions={departamentoOptions}
           departamentoDisabled={Boolean(departamentoOptionsError)}
         />

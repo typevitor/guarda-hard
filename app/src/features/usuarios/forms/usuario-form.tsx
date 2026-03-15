@@ -1,20 +1,22 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 
-import type { DepartamentoOption } from "@/features/departamentos/server/departamentos-options-api";
+import type { DepartamentoOption } from '@/features/departamentos/server/departamentos-options-api';
 
-import { usuarioSchema, type UsuarioPayload } from "../schemas/usuario-schema";
+import { usuarioSchema, type UsuarioPayload } from '../schemas/usuario-schema';
 
 type UsuarioFormProps = {
   onSubmit: (values: UsuarioPayload) => Promise<void>;
+  onCancel?: () => void;
   departamentoOptions: DepartamentoOption[];
   departamentoDisabled?: boolean;
 };
 
 export function UsuarioForm({
   onSubmit,
+  onCancel,
   departamentoOptions,
   departamentoDisabled = false,
 }: UsuarioFormProps) {
@@ -26,9 +28,9 @@ export function UsuarioForm({
   } = useForm<UsuarioPayload>({
     resolver: zodResolver(usuarioSchema),
     defaultValues: {
-      nome: "",
-      email: "",
-      departamentoId: "",
+      nome: '',
+      email: '',
+      departamentoId: '',
     },
   });
 
@@ -47,23 +49,19 @@ export function UsuarioForm({
     >
       <div className="form-field">
         <label htmlFor="nome">Nome</label>
-        <input id="nome" type="text" {...register("nome")} />
+        <input id="nome" type="text" {...register('nome')} />
         {errors.nome ? <p role="alert">{errors.nome.message}</p> : null}
       </div>
 
       <div className="form-field">
         <label htmlFor="email">Email</label>
-        <input id="email" type="email" {...register("email")} />
+        <input id="email" type="email" {...register('email')} />
         {errors.email ? <p role="alert">{errors.email.message}</p> : null}
       </div>
 
       <div className="form-field">
         <label htmlFor="departamentoId">Departamento</label>
-        <select
-          id="departamentoId"
-          {...register("departamentoId")}
-          disabled={departamentoDisabled}
-        >
+        <select id="departamentoId" {...register('departamentoId')} disabled={departamentoDisabled}>
           <option value="">Sem departamento</option>
           {departamentoOptions.map((option) => (
             <option key={option.id} value={option.id}>
@@ -74,9 +72,14 @@ export function UsuarioForm({
         {errors.departamentoId ? <p role="alert">{errors.departamentoId.message}</p> : null}
       </div>
 
-      <button type="submit" disabled={isSubmitting}>
-        Salvar usuario
-      </button>
+      <div className="modal-actions">
+        <button type="button" className="btn-ghost" onClick={onCancel}>
+          Cancelar
+        </button>
+        <button type="submit" className="btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? 'Salvando...' : 'Salvar'}
+        </button>
+      </div>
     </form>
   );
 }

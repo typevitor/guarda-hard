@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { fetchOpenEmprestimosForDevolucao } from '../client/devolucoes-open-selector-client';
 import type { DevolucaoPayload } from '../schemas/emprestimo-schema';
@@ -8,9 +8,10 @@ import type { DevolucaoSelectorOption } from '../client/devolucoes-open-selector
 
 type DevolucaoFormProps = {
   onSubmit: (values: DevolucaoPayload) => Promise<void>;
+  onCancel?: () => void;
 };
 
-export function DevolucaoForm({ onSubmit }: DevolucaoFormProps) {
+export function DevolucaoForm({ onSubmit, onCancel }: DevolucaoFormProps) {
   const [search, setSearch] = useState('');
   const [options, setOptions] = useState<DevolucaoSelectorOption[]>([]);
   const [page, setPage] = useState(1);
@@ -19,24 +20,42 @@ export function DevolucaoForm({ onSubmit }: DevolucaoFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const requestSeqRef = useRef(0);
 
   const hasMore = page < totalPages;
   const isSubmitDisabled = !selectedId || options.length === 0 || submitting;
 
   useEffect(() => {
+    setSelectedId('');
+  }, [search]);
+
+  useEffect(() => {
+    const currentSeq = requestSeqRef.current + 1;
+    requestSeqRef.current = currentSeq;
+
     const load = async () => {
       setLoading(true);
       setError(null);
 
       try {
         const result = await fetchOpenEmprestimosForDevolucao(1, search || undefined);
+        if (currentSeq !== requestSeqRef.current) {
+          return;
+        }
         setOptions(result.items);
         setPage(result.page);
         setTotalPages(result.totalPages);
+        setSelectedId((current) =>
+          result.items.some((item) => item.value === current) ? current : '',
+        );
       } catch {
-        setError('Nao foi possivel carregar emprestimos em aberto');
+        if (currentSeq === requestSeqRef.current) {
+          setError('Nao foi possivel carregar emprestimos em aberto');
+        }
       } finally {
-        setLoading(false);
+        if (currentSeq === requestSeqRef.current) {
+          setLoading(false);
+        }
       }
     };
 
@@ -50,18 +69,27 @@ export function DevolucaoForm({ onSubmit }: DevolucaoFormProps) {
       return;
     }
 
+    const currentSeq = requestSeqRef.current;
+
     setLoading(true);
     setError(null);
 
     try {
       const result = await fetchOpenEmprestimosForDevolucao(page + 1, search || undefined);
+      if (currentSeq !== requestSeqRef.current) {
+        return;
+      }
       setOptions((current) => [...current, ...result.items]);
       setPage(result.page);
       setTotalPages(result.totalPages);
     } catch {
-      setError('Nao foi possivel carregar emprestimos em aberto');
+      if (currentSeq === requestSeqRef.current) {
+        setError('Nao foi possivel carregar emprestimos em aberto');
+      }
     } finally {
-      setLoading(false);
+      if (currentSeq === requestSeqRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -91,7 +119,9 @@ export function DevolucaoForm({ onSubmit }: DevolucaoFormProps) {
           id="devolucao-search"
           type="search"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => {
+            setSearch(event.target.value);
+          }}
           placeholder="Buscar emprestimo em aberto"
         />
       </div>
@@ -101,7 +131,9 @@ export function DevolucaoForm({ onSubmit }: DevolucaoFormProps) {
         <select
           id="emprestimoId"
           value={selectedValue}
-          onChange={(event) => setSelectedId(event.target.value)}
+          onChange={(event) => {
+            setSelectedId(event.target.value);
+          }}
         >
           <option value="">Selecione um emprestimo</option>
           {options.map((option) => (
@@ -122,9 +154,14 @@ export function DevolucaoForm({ onSubmit }: DevolucaoFormProps) {
         </button>
       ) : null}
 
-      <button type="submit" disabled={isSubmitDisabled}>
-        Registrar devolucao
-      </button>
+      <div className="modal-actions">
+        <button type="button" className="btn-ghost" onClick={onCancel}>
+          Cancelar
+        </button>
+        <button type="submit" className="btn-primary" disabled={isSubmitDisabled}>
+          {submitting ? 'Salvando...' : 'Salvar'}
+        </button>
+      </div>
     </form>
   );
 }

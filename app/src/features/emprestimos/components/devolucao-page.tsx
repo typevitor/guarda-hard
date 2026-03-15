@@ -14,6 +14,80 @@ import type { DevolucaoPayload } from '../schemas/emprestimo-schema';
 import type { EmprestimoListResponse } from '../server/emprestimos-list-api';
 import { DevolucoesList } from './devolucoes-list';
 
+type DevolucaoPresetId = 'all' | 'today' | 'week' | 'month';
+
+const parseDate = (value: string | null): Date | null => {
+  if (!value) {
+    return null;
+  }
+
+  const datePart = value.slice(0, 10);
+  const [yearText, monthText, dayText] = datePart.split('-');
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null;
+  }
+
+  const parsed = new Date(year, month - 1, day);
+  parsed.setHours(0, 0, 0, 0);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed;
+};
+
+const isSameDay = (left: Date, right: Date): boolean =>
+  left.getFullYear() === right.getFullYear() &&
+  left.getMonth() === right.getMonth() &&
+  left.getDate() === right.getDate();
+
+const startOfWeek = (date: Date): Date => {
+  const start = new Date(date);
+  const offset = (date.getDay() + 6) % 7;
+  start.setHours(0, 0, 0, 0);
+  start.setDate(date.getDate() - offset);
+  return start;
+};
+
+const endOfWeek = (date: Date): Date => {
+  const end = startOfWeek(date);
+  end.setDate(end.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+  return end;
+};
+
+const startOfMonth = (date: Date): Date => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  start.setHours(0, 0, 0, 0);
+  return start;
+};
+
+const endOfMonth = (date: Date): Date => {
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  end.setHours(23, 59, 59, 999);
+  return end;
+};
+
 type DevolucaoPageProps = {
   onSubmit: (values: DevolucaoPayload) => Promise<void>;
   list: EmprestimoListResponse;
@@ -30,6 +104,15 @@ export function DevolucaoPage({ onSubmit, list, query }: DevolucaoPageProps) {
     message: string;
   } | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [activePresetId, setActivePresetId] = useState<DevolucaoPresetId>('all');
+  const hasDevolucaoDates = list.items.some((item) => parseDate(item.dataDevolucao) !== null);
+
+  const devolucaoPresets: { id: DevolucaoPresetId; label: string; disabled?: boolean }[] = [
+    { id: 'all', label: 'Todos' },
+    { id: 'today', label: 'Devolvidos hoje', disabled: !hasDevolucaoDates },
+    { id: 'week', label: 'Esta semana', disabled: !hasDevolucaoDates },
+    { id: 'month', label: 'Este mes', disabled: !hasDevolucaoDates },
+  ];
 
   const pushQuery = (nextQuery: DevolucoesListQuery): void => {
     const params = new URLSearchParams();
@@ -49,11 +132,54 @@ export function DevolucaoPage({ onSubmit, list, query }: DevolucaoPageProps) {
       setIsModalOpen(false);
       setStatus({ type: 'success', message: 'Devolucao registrada com sucesso' });
       router.refresh();
-    } catch {
+    } catch (error) {
       setModalError('Nao foi possivel registrar devolucao');
-      throw new Error('submit failed');
+      throw error;
     }
   };
+
+  const applyPreset = (presetId: DevolucaoPresetId): void => {
+    const nextQuery = {
+      ...activeQuery,
+      page: 1,
+      status: 'returned' as const,
+      retiradaFrom: undefined,
+      retiradaTo: undefined,
+      devolucaoFrom: undefined,
+      devolucaoTo: undefined,
+    };
+
+    setActivePresetId(presetId);
+    setActiveQuery(nextQuery);
+    pushQuery(nextQuery);
+  };
+
+  const now = new Date();
+  const weekStart = startOfWeek(now);
+  const weekEnd = endOfWeek(now);
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
+
+  const filteredItems = list.items.filter((item) => {
+    if (activePresetId === 'all') {
+      return true;
+    }
+
+    const devolucaoDate = parseDate(item.dataDevolucao);
+    if (!devolucaoDate) {
+      return false;
+    }
+
+    if (activePresetId === 'today') {
+      return isSameDay(devolucaoDate, now);
+    }
+
+    if (activePresetId === 'week') {
+      return devolucaoDate >= weekStart && devolucaoDate <= weekEnd;
+    }
+
+    return devolucaoDate >= monthStart && devolucaoDate <= monthEnd;
+  });
 
   return (
     <section className="list-page" aria-label="Pagina de devolucao">
@@ -71,7 +197,7 @@ export function DevolucaoPage({ onSubmit, list, query }: DevolucaoPageProps) {
               setIsModalOpen(true);
             }}
           >
-            New
+            Nova devolucao
           </button>
         </div>
       </div>
@@ -92,13 +218,28 @@ export function DevolucaoPage({ onSubmit, list, query }: DevolucaoPageProps) {
           pushQuery(nextQuery);
         }}
         onClearFilters={() => {
-          const nextQuery = { ...activeQuery, search: '', page: 1, status: 'returned' as const };
+          const nextQuery = {
+            ...activeQuery,
+            search: '',
+            page: 1,
+            status: 'returned' as const,
+            retiradaFrom: undefined,
+            retiradaTo: undefined,
+            devolucaoFrom: undefined,
+            devolucaoTo: undefined,
+          };
+          setActivePresetId('all');
           setActiveQuery(nextQuery);
           pushQuery(nextQuery);
         }}
+        presets={devolucaoPresets}
+        activePresetId={activePresetId}
+        onPresetChange={(presetId) => {
+          applyPreset(presetId as DevolucaoPresetId);
+        }}
       />
 
-      <DevolucoesList items={list.items} />
+      <DevolucoesList items={filteredItems} />
 
       <PaginationControls
         page={activeQuery.page}
@@ -112,7 +253,12 @@ export function DevolucaoPage({ onSubmit, list, query }: DevolucaoPageProps) {
 
       <Modal open={isModalOpen} onOpenChange={setIsModalOpen} title="Nova devolucao">
         {modalError ? <FeedbackBanner type="error" message={modalError} /> : null}
-        <DevolucaoForm onSubmit={handleSubmit} />
+        <DevolucaoForm
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setIsModalOpen(false);
+          }}
+        />
       </Modal>
     </section>
   );

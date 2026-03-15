@@ -1,18 +1,16 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 
-import {
-  emprestimoSchema,
-  type EmprestimoPayload,
-} from "../schemas/emprestimo-schema";
+import { emprestimoSchema, type EmprestimoPayload } from '../schemas/emprestimo-schema';
 
 type EmprestimoFormProps = {
   onSubmit: (values: EmprestimoPayload) => Promise<void>;
+  onCancel?: () => void;
 };
 
-export function EmprestimoForm({ onSubmit }: EmprestimoFormProps) {
+export function EmprestimoForm({ onSubmit, onCancel }: EmprestimoFormProps) {
   const {
     register,
     handleSubmit,
@@ -21,8 +19,8 @@ export function EmprestimoForm({ onSubmit }: EmprestimoFormProps) {
   } = useForm<EmprestimoPayload>({
     resolver: zodResolver(emprestimoSchema),
     defaultValues: {
-      usuarioId: "",
-      hardwareId: "",
+      usuarioId: '',
+      hardwareId: '',
     },
   });
 
@@ -40,19 +38,24 @@ export function EmprestimoForm({ onSubmit }: EmprestimoFormProps) {
     >
       <div className="form-field">
         <label htmlFor="usuarioId">Usuario</label>
-        <input id="usuarioId" type="text" {...register("usuarioId")} />
+        <input id="usuarioId" type="text" {...register('usuarioId')} />
         {errors.usuarioId ? <p role="alert">{errors.usuarioId.message}</p> : null}
       </div>
 
       <div className="form-field">
         <label htmlFor="hardwareId">Hardware</label>
-        <input id="hardwareId" type="text" {...register("hardwareId")} />
+        <input id="hardwareId" type="text" {...register('hardwareId')} />
         {errors.hardwareId ? <p role="alert">{errors.hardwareId.message}</p> : null}
       </div>
 
-      <button type="submit" disabled={isSubmitting}>
-        Registrar emprestimo
-      </button>
+      <div className="modal-actions">
+        <button type="button" className="btn-ghost" onClick={onCancel}>
+          Cancelar
+        </button>
+        <button type="submit" className="btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? 'Salvando...' : 'Salvar'}
+        </button>
+      </div>
     </form>
   );
 }

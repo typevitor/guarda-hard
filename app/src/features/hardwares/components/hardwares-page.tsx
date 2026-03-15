@@ -1,18 +1,43 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
-import { FeedbackBanner } from "@/components/ui/feedback-banner";
-import { FilterBar } from "@/components/ui/filter-bar";
-import { Modal } from "@/components/ui/modal";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { FeedbackBanner } from '@/components/ui/feedback-banner';
+import { FilterBar } from '@/components/ui/filter-bar';
+import { Modal } from '@/components/ui/modal';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
-import { HardwareForm } from "../forms/hardware-form";
-import type { HardwaresListQuery } from "../schemas/hardwares-list-query-schema";
-import type { HardwarePayload } from "../schemas/hardware-schema";
-import type { HardwareListResponse } from "../server/hardwares-list-api";
-import { HardwaresList } from "./hardwares-list";
+import { HardwareForm } from '../forms/hardware-form';
+import type { HardwaresListQuery } from '../schemas/hardwares-list-query-schema';
+import type { HardwarePayload } from '../schemas/hardware-schema';
+import type { HardwareListResponse } from '../server/hardwares-list-api';
+import { HardwaresList } from './hardwares-list';
+
+type HardwarePresetId = 'all' | 'available' | 'inUse' | 'broken';
+
+const hardwarePresets: { id: HardwarePresetId; label: string }[] = [
+  { id: 'all', label: 'Todos' },
+  { id: 'available', label: 'Disponiveis' },
+  { id: 'inUse', label: 'Em uso' },
+  { id: 'broken', label: 'Com defeito' },
+];
+
+const resolveActivePreset = (query: HardwaresListQuery): HardwarePresetId => {
+  if (query.funcionando === false) {
+    return 'broken';
+  }
+
+  if (query.livre === true) {
+    return 'available';
+  }
+
+  if (query.livre === false) {
+    return 'inUse';
+  }
+
+  return 'all';
+};
 
 type HardwaresPageProps = {
   onSubmit: (values: HardwarePayload) => Promise<void>;
@@ -26,18 +51,46 @@ export function HardwaresPage({ onSubmit, list, query }: HardwaresPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeQuery, setActiveQuery] = useState(query);
   const [status, setStatus] = useState<{
-    type: "success" | "error";
+    type: 'success' | 'error';
     message: string;
   } | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
+  const activePresetId = resolveActivePreset(activeQuery);
 
   const pushQuery = (nextQuery: HardwaresListQuery): void => {
     const params = new URLSearchParams();
-    params.set("page", String(nextQuery.page));
+    params.set('page', String(nextQuery.page));
     if (nextQuery.search) {
-      params.set("search", nextQuery.search);
+      params.set('search', nextQuery.search);
+    }
+    if (nextQuery.livre !== undefined) {
+      params.set('livre', String(nextQuery.livre));
+    }
+    if (nextQuery.funcionando !== undefined) {
+      params.set('funcionando', String(nextQuery.funcionando));
     }
     router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const applyPreset = (presetId: HardwarePresetId): void => {
+    const baseQuery = {
+      ...activeQuery,
+      page: 1,
+      livre: undefined,
+      funcionando: undefined,
+    };
+
+    const nextQuery =
+      presetId === 'available'
+        ? { ...baseQuery, livre: true }
+        : presetId === 'inUse'
+          ? { ...baseQuery, livre: false }
+          : presetId === 'broken'
+            ? { ...baseQuery, funcionando: false }
+            : baseQuery;
+
+    setActiveQuery(nextQuery);
+    pushQuery(nextQuery);
   };
 
   const handleSubmit = async (values: HardwarePayload): Promise<void> => {
@@ -46,11 +99,11 @@ export function HardwaresPage({ onSubmit, list, query }: HardwaresPageProps) {
     try {
       await onSubmit(values);
       setIsModalOpen(false);
-      setStatus({ type: "success", message: "Hardware criado com sucesso" });
+      setStatus({ type: 'success', message: 'Hardware criado com sucesso' });
       router.refresh();
-    } catch {
-      setModalError("Nao foi possivel criar hardware");
-      throw new Error("submit failed");
+    } catch (error) {
+      setModalError('Nao foi possivel criar hardware');
+      throw error;
     }
   };
 
@@ -70,7 +123,7 @@ export function HardwaresPage({ onSubmit, list, query }: HardwaresPageProps) {
               setIsModalOpen(true);
             }}
           >
-            New
+            Novo hardware
           </button>
         </div>
       </div>
@@ -86,9 +139,20 @@ export function HardwaresPage({ onSubmit, list, query }: HardwaresPageProps) {
           pushQuery(nextQuery);
         }}
         onClearFilters={() => {
-          const nextQuery = { ...activeQuery, search: "", page: 1 };
+          const nextQuery = {
+            ...activeQuery,
+            search: '',
+            page: 1,
+            livre: undefined,
+            funcionando: undefined,
+          };
           setActiveQuery(nextQuery);
           pushQuery(nextQuery);
+        }}
+        presets={hardwarePresets}
+        activePresetId={activePresetId}
+        onPresetChange={(presetId) => {
+          applyPreset(presetId as HardwarePresetId);
         }}
       />
 
@@ -106,7 +170,12 @@ export function HardwaresPage({ onSubmit, list, query }: HardwaresPageProps) {
 
       <Modal open={isModalOpen} onOpenChange={setIsModalOpen} title="Novo hardware">
         {modalError ? <FeedbackBanner type="error" message={modalError} /> : null}
-        <HardwareForm onSubmit={handleSubmit} />
+        <HardwareForm
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setIsModalOpen(false);
+          }}
+        />
       </Modal>
     </section>
   );
