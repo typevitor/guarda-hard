@@ -15,10 +15,16 @@ export type PaginatedDepartamentos = {
   totalPages: number;
 };
 
+export type DepartamentoOption = {
+  id: string;
+  nome: string;
+};
+
 export interface IDepartamentoRepository {
   findById(id: string): Promise<Departamento | null>;
   findAll(): Promise<Departamento[]>;
   listPaginated(query: DepartamentoListQuery): Promise<PaginatedDepartamentos>;
+  listOptions(): Promise<DepartamentoOption[]>;
   save(departamento: Departamento): Promise<void>;
   delete(id: string): Promise<void>;
 }

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
+  type DepartamentoOption,
   type DepartamentoListQuery,
   IDepartamentoRepository,
   type PaginatedDepartamentos,
@@ -68,6 +69,20 @@ export class TypeOrmDepartamentoRepository implements IDepartamentoRepository {
       total,
       totalPages: Math.ceil(total / pageSize),
     };
+  }
+
+  async listOptions(): Promise<DepartamentoOption[]> {
+    const empresaId = this.tenantContext.requireEmpresaId();
+    const rows = await this.ormRepo
+      .createQueryBuilder('departamento')
+      .select('departamento.id', 'id')
+      .addSelect('departamento.nome', 'nome')
+      .where('departamento.empresa_id = :empresaId', { empresaId })
+      .orderBy('LOWER(departamento.nome)', 'ASC')
+      .addOrderBy('departamento.id', 'ASC')
+      .getRawMany<DepartamentoOption>();
+
+    return rows;
   }
 
   async save(departamento: Departamento): Promise<void> {

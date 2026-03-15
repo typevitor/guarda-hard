@@ -25,6 +25,11 @@ import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-vali
 import { Departamento } from '../../domain/entities/departamento.entity';
 import { SessionPhaseGuard } from '../../../auth/presentation/http/session-phase.guard';
 
+type DepartamentoOptionHttpResponse = {
+  id: string;
+  nome: string;
+};
+
 type DepartamentoHttpResponse = {
   id: string;
   empresaId: string;
@@ -72,6 +77,12 @@ export class DepartamentosController {
       total: result.total,
       totalPages: result.totalPages,
     };
+  }
+
+  @Get('options')
+  async listOptions(): Promise<DepartamentoOptionHttpResponse[]> {
+    const options = await this.departamentosService.listOptions();
+    return options.map((option) => ({ id: option.id, nome: option.nome }));
   }
 
   @Get(':id')

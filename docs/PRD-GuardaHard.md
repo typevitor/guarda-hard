@@ -580,3 +580,4 @@ Tarefas paralelas:
 - [x] Task 5 - Pagina de selecao de empresa
 - [x] Task 6 - Protecao global de rotas por fase
 - [x] Task 7 - Verificacao final e quality gate
+- [x] Task 8 - Criacao de usuario com select de departamentos por tenant e departamento opcional

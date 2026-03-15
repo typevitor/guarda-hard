@@ -33,4 +33,14 @@ describe('Usuario domain entity', () => {
     expect(user.senhaHash).toBe('hash456');
     expect(user.ativo).toBe(false);
   });
+
+  it('defaults departamentoId to null when not provided on create', () => {
+    const user = Usuario.create({
+      empresaId: 'empresa-a',
+      nome: 'Sem departamento',
+      email: 'sem-departamento@example.com',
+    });
+
+    expect(user.departamentoId).toBeNull();
+  });
 });

@@ -22,13 +22,13 @@ type UsuarioJoinedRow = {
   created_at: string | Date;
   updated_at: string | Date;
   empresa_id: string;
-  departamento_id: string;
+  departamento_id: string | null;
 };
 
 type UsuarioMembershipRow = {
   usuario_id: string;
   empresa_id: string;
-  departamento_id: string;
+  departamento_id: string | null;
 };
 
 @Injectable()

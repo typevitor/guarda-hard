@@ -8,7 +8,10 @@ export async function createUsuarioServer(payload: UsuarioPayload): Promise<void
   await apiClient({
     path: "/usuarios",
     method: "POST",
-    body: parsedPayload,
+    body: {
+      ...parsedPayload,
+      departamentoId: parsedPayload.departamentoId?.trim() || null,
+    },
     responseType: "void",
     fallbackErrorMessage: "Nao foi possivel criar usuario",
   });

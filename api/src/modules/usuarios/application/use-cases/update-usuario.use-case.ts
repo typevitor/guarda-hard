@@ -15,7 +15,7 @@ export class UpdateUsuarioUseCase {
   async execute(input: {
     id: string;
     empresaId: string;
-    departamentoId?: string;
+    departamentoId?: string | null;
     nome?: string;
     email?: string;
     senhaHash?: string;
@@ -27,7 +27,10 @@ export class UpdateUsuarioUseCase {
       throw new NotFoundException('Usuario nao encontrado');
     }
 
-    const departamentoId = input.departamentoId ?? usuario.departamentoId;
+    const departamentoId =
+      input.departamentoId === undefined
+        ? usuario.departamentoId
+        : input.departamentoId;
 
     const atualizado = new Usuario({
       id: usuario.id,

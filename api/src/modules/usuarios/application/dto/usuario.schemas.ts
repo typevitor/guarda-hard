@@ -19,7 +19,7 @@ const booleanStringSchema = z
   .transform((value) => value === 'true');
 
 export const createUsuarioSchema = z.object({
-  departamentoId: z.string().uuid(),
+  departamentoId: z.string().uuid().nullable().optional(),
   nome: z.string().trim().min(1),
   email: z.string().trim().email(),
   senhaHash: z.string().trim().min(1).optional(),
@@ -27,7 +27,7 @@ export const createUsuarioSchema = z.object({
 
 export const updateUsuarioSchema = z
   .object({
-    departamentoId: z.string().uuid().optional(),
+    departamentoId: z.string().uuid().nullable().optional(),
     nome: z.string().trim().min(1).optional(),
     email: z.string().trim().email().optional(),
     senhaHash: z.string().trim().min(1).optional(),

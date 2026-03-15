@@ -24,9 +24,57 @@ async function ensureUsuarioEmpresasDepartamentoColumn(
 
   const columns = (await dataSource.query(
     `PRAGMA table_info('usuario_empresas')`,
-  )) as Array<{ name: string }>;
+  )) as Array<{ name: string; notnull: number }>;
 
   if (columns.some((column) => column.name === 'departamento_id')) {
+    const departamentoColumn = columns.find(
+      (column) => column.name === 'departamento_id',
+    );
+
+    if (departamentoColumn?.notnull === 1) {
+      logger.warn(
+        'Detected strict usuario_empresas schema with non-null departamento_id; making column nullable',
+      );
+
+      await dataSource.transaction(async (manager) => {
+        await manager.query(`
+          CREATE TABLE "usuario_empresas_tmp" (
+            "usuario_id" varchar(36) NOT NULL,
+            "empresa_id" varchar(36) NOT NULL,
+            "departamento_id" varchar(36),
+            "created_at" datetime NOT NULL DEFAULT (datetime('now')),
+            "updated_at" datetime NOT NULL DEFAULT (datetime('now')),
+            CONSTRAINT "FK_usuario_empresas_usuario" FOREIGN KEY ("usuario_id") REFERENCES "usuarios" ("id") ON DELETE CASCADE ON UPDATE NO ACTION,
+            CONSTRAINT "FK_usuario_empresas_empresa" FOREIGN KEY ("empresa_id") REFERENCES "empresas" ("id") ON DELETE RESTRICT ON UPDATE NO ACTION,
+            CONSTRAINT "FK_usuario_empresas_departamento" FOREIGN KEY ("departamento_id") REFERENCES "departamentos" ("id") ON DELETE RESTRICT ON UPDATE NO ACTION,
+            CONSTRAINT "UQ_usuario_empresas_usuario_empresa" UNIQUE ("usuario_id", "empresa_id")
+          )
+        `);
+
+        await manager.query(`
+          INSERT INTO "usuario_empresas_tmp" (
+            "usuario_id",
+            "empresa_id",
+            "departamento_id",
+            "created_at",
+            "updated_at"
+          )
+          SELECT
+            "usuario_id",
+            "empresa_id",
+            "departamento_id",
+            "created_at",
+            "updated_at"
+          FROM "usuario_empresas"
+        `);
+
+        await manager.query(`DROP TABLE "usuario_empresas"`);
+        await manager.query(
+          `ALTER TABLE "usuario_empresas_tmp" RENAME TO "usuario_empresas"`,
+        );
+      });
+    }
+
     return;
   }
 

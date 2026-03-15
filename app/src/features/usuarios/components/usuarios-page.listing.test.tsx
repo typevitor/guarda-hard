@@ -12,6 +12,12 @@ vi.mock("next/navigation", () => ({
 import { UsuariosPage } from "./usuarios-page";
 
 describe("UsuariosPage listing flow", () => {
+  const departamentoOptions = [
+    { id: "dep-1", nome: "Suporte" },
+    { id: "dep-2", nome: "Administracao" },
+    { id: "dep-3", nome: "Comercial" },
+  ];
+
   const baseList = {
     items: [
       {
@@ -26,7 +32,7 @@ describe("UsuariosPage listing flow", () => {
       },
     ],
     page: 2,
-    pageSize: 10,
+    pageSize: 10 as const,
     total: 11,
     totalPages: 4,
   };
@@ -36,6 +42,7 @@ describe("UsuariosPage listing flow", () => {
     pageSize: 10 as const,
     search: "",
     departamentoId: "",
+    ativo: undefined,
   };
 
   beforeEach(() => {
@@ -46,7 +53,14 @@ describe("UsuariosPage listing flow", () => {
   it("opens modal with New and refreshes after successful save", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 
-    render(<UsuariosPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
+    render(
+      <UsuariosPage
+        onSubmit={onSubmit}
+        list={baseList}
+        query={baseQuery}
+        departamentoOptions={departamentoOptions}
+      />,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "New" }));
     expect(screen.getByRole("dialog", { name: "Novo usuario" })).toBeTruthy();
@@ -70,7 +84,14 @@ describe("UsuariosPage listing flow", () => {
   it("keeps modal open and preserves values on failure", async () => {
     const onSubmit = vi.fn().mockRejectedValue(new Error("network"));
 
-    render(<UsuariosPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
+    render(
+      <UsuariosPage
+        onSubmit={onSubmit}
+        list={baseList}
+        query={baseQuery}
+        departamentoOptions={departamentoOptions}
+      />,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "New" }));
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Carla" } });
@@ -91,6 +112,7 @@ describe("UsuariosPage listing flow", () => {
         onSubmit={onSubmit}
         list={baseList}
         query={{ ...baseQuery, search: "ana" }}
+        departamentoOptions={departamentoOptions}
       />,
     );
 

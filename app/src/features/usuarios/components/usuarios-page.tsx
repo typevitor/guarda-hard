@@ -7,6 +7,7 @@ import { FeedbackBanner } from "@/components/ui/feedback-banner";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { Modal } from "@/components/ui/modal";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import type { DepartamentoOption } from "@/features/departamentos/server/departamentos-options-api";
 
 import { UsuarioForm } from "../forms/usuario-form";
 import type { UsuariosListQuery } from "../schemas/usuarios-list-query-schema";
@@ -18,9 +19,17 @@ type UsuariosPageProps = {
   onSubmit: (values: UsuarioPayload) => Promise<void>;
   list: UsuarioListResponse;
   query: UsuariosListQuery;
+  departamentoOptions: DepartamentoOption[];
+  departamentoOptionsError?: string | null;
 };
 
-export function UsuariosPage({ onSubmit, list, query }: UsuariosPageProps) {
+export function UsuariosPage({
+  onSubmit,
+  list,
+  query,
+  departamentoOptions,
+  departamentoOptionsError = null,
+}: UsuariosPageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -105,8 +114,15 @@ export function UsuariosPage({ onSubmit, list, query }: UsuariosPageProps) {
       />
 
       <Modal open={isModalOpen} onOpenChange={setIsModalOpen} title="Novo usuario">
+        {departamentoOptionsError ? (
+          <FeedbackBanner type="error" message={departamentoOptionsError} />
+        ) : null}
         {modalError ? <FeedbackBanner type="error" message={modalError} /> : null}
-        <UsuarioForm onSubmit={handleSubmit} />
+        <UsuarioForm
+          onSubmit={handleSubmit}
+          departamentoOptions={departamentoOptions}
+          departamentoDisabled={Boolean(departamentoOptionsError)}
+        />
       </Modal>
     </section>
   );

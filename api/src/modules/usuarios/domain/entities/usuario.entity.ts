@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 export interface UsuarioProps {
   id: string;
   empresaId: string;
-  departamentoId: string;
+  departamentoId: string | null;
   nome: string;
   email: string;
   senhaHash?: string;
@@ -14,7 +14,7 @@ export interface UsuarioProps {
 }
 
 export class Usuario extends DomainEntity {
-  readonly departamentoId: string;
+  readonly departamentoId: string | null;
   private _nome: string;
   private _email: string;
   private _senhaHash: string;
@@ -31,7 +31,7 @@ export class Usuario extends DomainEntity {
 
   static create(props: {
     empresaId: string;
-    departamentoId: string;
+    departamentoId?: string | null;
     nome: string;
     email: string;
     senhaHash?: string;
@@ -39,7 +39,7 @@ export class Usuario extends DomainEntity {
     return new Usuario({
       id: randomUUID(),
       empresaId: props.empresaId,
-      departamentoId: props.departamentoId,
+      departamentoId: props.departamentoId ?? null,
       nome: props.nome,
       email: props.email,
       senhaHash: props.senhaHash,

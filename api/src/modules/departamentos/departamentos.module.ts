@@ -6,6 +6,7 @@ import { DEPARTAMENTO_REPOSITORY } from './domain/repositories/departamento.repo
 import { CreateDepartamentoUseCase } from './application/use-cases/create-departamento.use-case';
 import { ListDepartamentosUseCase } from './application/use-cases/list-departamentos.use-case';
 import { ListDepartamentosPaginadoUseCase } from './application/use-cases/list-departamentos-paginado.use-case';
+import { ListDepartamentosOptionsUseCase } from './application/use-cases/list-departamentos-options.use-case';
 import { GetDepartamentoByIdUseCase } from './application/use-cases/get-departamento-by-id.use-case';
 import { UpdateDepartamentoUseCase } from './application/use-cases/update-departamento.use-case';
 import { DeleteDepartamentoUseCase } from './application/use-cases/delete-departamento.use-case';
@@ -29,6 +30,7 @@ import { AuthModule } from '../auth/auth.module';
     CreateDepartamentoUseCase,
     ListDepartamentosUseCase,
     ListDepartamentosPaginadoUseCase,
+    ListDepartamentosOptionsUseCase,
     GetDepartamentoByIdUseCase,
     UpdateDepartamentoUseCase,
     DeleteDepartamentoUseCase,

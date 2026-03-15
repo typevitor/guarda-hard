@@ -14,7 +14,7 @@ export class CreateUsuarioUseCase {
 
   async execute(input: {
     empresaId: string;
-    departamentoId: string;
+    departamentoId?: string | null;
     nome: string;
     email: string;
     senhaHash?: string;

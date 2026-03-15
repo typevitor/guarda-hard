@@ -5,7 +5,7 @@ export class UsuarioMapper {
   static toDomain(input: {
     orm: UsuarioOrmEntity;
     empresaId: string;
-    departamentoId: string;
+    departamentoId: string | null;
   }): Usuario {
     return new Usuario({
       id: input.orm.id,

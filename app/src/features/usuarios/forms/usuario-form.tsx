@@ -3,13 +3,21 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
+import type { DepartamentoOption } from "@/features/departamentos/server/departamentos-options-api";
+
 import { usuarioSchema, type UsuarioPayload } from "../schemas/usuario-schema";
 
 type UsuarioFormProps = {
   onSubmit: (values: UsuarioPayload) => Promise<void>;
+  departamentoOptions: DepartamentoOption[];
+  departamentoDisabled?: boolean;
 };
 
-export function UsuarioForm({ onSubmit }: UsuarioFormProps) {
+export function UsuarioForm({
+  onSubmit,
+  departamentoOptions,
+  departamentoDisabled = false,
+}: UsuarioFormProps) {
   const {
     register,
     handleSubmit,
@@ -51,7 +59,18 @@ export function UsuarioForm({ onSubmit }: UsuarioFormProps) {
 
       <div className="form-field">
         <label htmlFor="departamentoId">Departamento</label>
-        <input id="departamentoId" type="text" {...register("departamentoId")} />
+        <select
+          id="departamentoId"
+          {...register("departamentoId")}
+          disabled={departamentoDisabled}
+        >
+          <option value="">Sem departamento</option>
+          {departamentoOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.nome}
+            </option>
+          ))}
+        </select>
         {errors.departamentoId ? <p role="alert">{errors.departamentoId.message}</p> : null}
       </div>
 

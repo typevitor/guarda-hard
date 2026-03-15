@@ -28,7 +28,7 @@ import { SessionPhaseGuard } from '../../../auth/presentation/http/session-phase
 type UsuarioHttpResponse = {
   id: string;
   empresaId: string;
-  departamentoId: string;
+  departamentoId: string | null;
   nome: string;
   email: string;
   ativo: boolean;
