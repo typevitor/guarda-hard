@@ -38,6 +38,7 @@ type IndexRow = {
 type MembershipRow = {
   usuario_id: string;
   empresa_id: string;
+  departamento_id: string;
 };
 
 type LegacyHashRow = {
@@ -227,6 +228,11 @@ describe('GlobalUsersEmpresasMembership migration', () => {
       expect(
         usuarioEmpresasColumns.some((column) => column.name === 'empresa_id'),
       ).toBe(true);
+      expect(
+        usuarioEmpresasColumns.some(
+          (column) => column.name === 'departamento_id',
+        ),
+      ).toBe(true);
 
       const usuarioEmpresasForeignKeys = await queryRows<ForeignKeyRow>(
         queryRunner,
@@ -245,6 +251,14 @@ describe('GlobalUsersEmpresasMembership migration', () => {
           (fk) =>
             fk.from === 'empresa_id' &&
             fk.table === 'empresas' &&
+            fk.to === 'id',
+        ),
+      ).toBe(true);
+      expect(
+        usuarioEmpresasForeignKeys.some(
+          (fk) =>
+            fk.from === 'departamento_id' &&
+            fk.table === 'departamentos' &&
             fk.to === 'id',
         ),
       ).toBe(true);
@@ -278,17 +292,19 @@ describe('GlobalUsersEmpresasMembership migration', () => {
 
       const memberships = await queryRows<MembershipRow>(
         queryRunner,
-        `SELECT usuario_id, empresa_id FROM usuario_empresas ORDER BY usuario_id ASC`,
+        `SELECT usuario_id, empresa_id, departamento_id FROM usuario_empresas ORDER BY usuario_id ASC`,
       );
       expect(memberships).toEqual(
         expect.arrayContaining([
           {
             usuario_id: 'usr-a-0000-0000-0000-000000000001',
             empresa_id: TENANT_A,
+            departamento_id: 'dpt-a-0000-0000-0000-000000000001',
           },
           {
             usuario_id: 'usr-b-0000-0000-0000-000000000001',
             empresa_id: TENANT_B,
+            departamento_id: 'dpt-b-0000-0000-0000-000000000001',
           },
         ]),
       );
@@ -429,7 +445,7 @@ describe('GlobalUsersEmpresasMembership migration', () => {
       const duplicateMemberships = await queryRows<MembershipRow>(
         queryRunner,
         `
-          SELECT usuario_id, empresa_id
+          SELECT usuario_id, empresa_id, departamento_id
           FROM usuario_empresas
           WHERE usuario_id = 'usr-dup-a-0000-0000-000000000001'
           ORDER BY empresa_id ASC
@@ -440,10 +456,12 @@ describe('GlobalUsersEmpresasMembership migration', () => {
         {
           usuario_id: 'usr-dup-a-0000-0000-000000000001',
           empresa_id: TENANT_A,
+          departamento_id: 'dpt-a-dup-0000-0000-000000000001',
         },
         {
           usuario_id: 'usr-dup-a-0000-0000-000000000001',
           empresa_id: TENANT_B,
+          departamento_id: 'dpt-b-dup-0000-0000-000000000001',
         },
       ]);
 

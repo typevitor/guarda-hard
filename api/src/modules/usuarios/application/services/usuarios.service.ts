@@ -58,8 +58,12 @@ export class UsuariosService {
   }
 
   async update(id: string, input: UpdateUsuarioDto): Promise<Usuario> {
+    const empresaId = this.tenantContext.requireEmpresaId();
+
     return this.updateUsuarioUseCase.execute({
       id,
+      empresaId,
+      departamentoId: input.departamentoId,
       nome: input.nome,
       email: input.email,
       senhaHash: input.senhaHash,

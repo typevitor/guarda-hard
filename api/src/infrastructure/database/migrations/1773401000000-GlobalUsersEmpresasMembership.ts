@@ -74,6 +74,7 @@ export class GlobalUsersEmpresasMembership1773401000000 implements MigrationInte
             "legacy_usuario_id" varchar PRIMARY KEY NOT NULL,
             "canonical_usuario_id" varchar NOT NULL,
             "empresa_id" varchar(36),
+            "departamento_id" varchar(36),
             "created_at" datetime NOT NULL,
             "updated_at" datetime NOT NULL,
             CONSTRAINT "FK_usuarios_dedup_map_canonical" FOREIGN KEY ("canonical_usuario_id") REFERENCES "usuarios_global_tmp" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
@@ -118,6 +119,7 @@ export class GlobalUsersEmpresasMembership1773401000000 implements MigrationInte
             "legacy_usuario_id",
             "canonical_usuario_id",
             "empresa_id",
+            "departamento_id",
             "created_at",
             "updated_at"
           )
@@ -125,6 +127,7 @@ export class GlobalUsersEmpresasMembership1773401000000 implements MigrationInte
             legacy."id" AS "legacy_usuario_id",
             canonical."id" AS "canonical_usuario_id",
             legacy."empresa_id",
+            legacy."departamento_id",
             legacy."created_at",
             legacy."updated_at"
           FROM "usuarios" legacy
@@ -155,10 +158,12 @@ export class GlobalUsersEmpresasMembership1773401000000 implements MigrationInte
           CREATE TABLE "usuario_empresas" (
             "usuario_id" varchar(36) NOT NULL,
             "empresa_id" varchar(36) NOT NULL,
+            "departamento_id" varchar(36) NOT NULL,
             "created_at" datetime NOT NULL DEFAULT (datetime('now')),
             "updated_at" datetime NOT NULL DEFAULT (datetime('now')),
             CONSTRAINT "FK_usuario_empresas_usuario" FOREIGN KEY ("usuario_id") REFERENCES "usuarios_global_tmp" ("id") ON DELETE CASCADE ON UPDATE NO ACTION,
             CONSTRAINT "FK_usuario_empresas_empresa" FOREIGN KEY ("empresa_id") REFERENCES "empresas" ("id") ON DELETE RESTRICT ON UPDATE NO ACTION,
+            CONSTRAINT "FK_usuario_empresas_departamento" FOREIGN KEY ("departamento_id") REFERENCES "departamentos" ("id") ON DELETE RESTRICT ON UPDATE NO ACTION,
             CONSTRAINT "UQ_usuario_empresas_usuario_empresa" UNIQUE ("usuario_id", "empresa_id")
           )
         `,
@@ -166,15 +171,35 @@ export class GlobalUsersEmpresasMembership1773401000000 implements MigrationInte
 
       await queryRunner.query(
         `
-          INSERT OR IGNORE INTO "usuario_empresas" ("usuario_id", "empresa_id", "created_at", "updated_at")
+          INSERT OR IGNORE INTO "usuario_empresas" (
+            "usuario_id",
+            "empresa_id",
+            "departamento_id",
+            "created_at",
+            "updated_at"
+          )
           SELECT
-            map."canonical_usuario_id" AS "usuario_id",
-            map."empresa_id",
-            MIN(map."created_at") AS "created_at",
-            MAX(map."updated_at") AS "updated_at"
-          FROM "usuarios_dedup_map" map
-          WHERE map."empresa_id" IS NOT NULL
-          GROUP BY map."canonical_usuario_id", map."empresa_id"
+            ranked."canonical_usuario_id" AS "usuario_id",
+            ranked."empresa_id",
+            ranked."departamento_id",
+            ranked."created_at",
+            ranked."updated_at"
+          FROM (
+            SELECT
+              map."canonical_usuario_id",
+              map."empresa_id",
+              map."departamento_id",
+              map."created_at",
+              map."updated_at",
+              ROW_NUMBER() OVER (
+                PARTITION BY map."canonical_usuario_id", map."empresa_id"
+                ORDER BY map."created_at" ASC, map."legacy_usuario_id" ASC
+              ) AS "membership_rank"
+            FROM "usuarios_dedup_map" map
+            WHERE map."empresa_id" IS NOT NULL
+              AND map."departamento_id" IS NOT NULL
+          ) ranked
+          WHERE ranked."membership_rank" = 1
         `,
       );
 
@@ -490,17 +515,10 @@ export class GlobalUsersEmpresasMembership1773401000000 implements MigrationInte
             ) AS "empresa_id",
             COALESCE(
               (
-                SELECT d."id"
-                FROM "departamentos" d
-                WHERE d."empresa_id" = COALESCE(
-                  (
-                    SELECT MIN(ue."empresa_id")
-                    FROM "usuario_empresas" ue
-                    WHERE ue."usuario_id" = u."id"
-                  ),
-                  ?
-                )
-                ORDER BY d."created_at" ASC
+                SELECT ue."departamento_id"
+                FROM "usuario_empresas" ue
+                WHERE ue."usuario_id" = u."id"
+                ORDER BY ue."empresa_id" ASC
                 LIMIT 1
               ),
               (
@@ -517,7 +535,7 @@ export class GlobalUsersEmpresasMembership1773401000000 implements MigrationInte
             u."updated_at"
           FROM "usuarios" u
         `,
-        [TEST_COMPANY_ID, TEST_COMPANY_ID],
+        [TEST_COMPANY_ID],
       );
 
       await queryRunner.query(`DROP TABLE "usuarios"`);

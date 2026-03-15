@@ -27,6 +27,7 @@ export const createUsuarioSchema = z.object({
 
 export const updateUsuarioSchema = z
   .object({
+    departamentoId: z.string().uuid().optional(),
     nome: z.string().trim().min(1).optional(),
     email: z.string().trim().email().optional(),
     senhaHash: z.string().trim().min(1).optional(),
@@ -34,6 +35,7 @@ export const updateUsuarioSchema = z
   })
   .refine(
     (payload) =>
+      payload.departamentoId !== undefined ||
       payload.nome !== undefined ||
       payload.email !== undefined ||
       payload.senhaHash !== undefined ||

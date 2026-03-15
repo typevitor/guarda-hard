@@ -14,6 +14,8 @@ export class UpdateUsuarioUseCase {
 
   async execute(input: {
     id: string;
+    empresaId: string;
+    departamentoId?: string;
     nome?: string;
     email?: string;
     senhaHash?: string;
@@ -25,15 +27,29 @@ export class UpdateUsuarioUseCase {
       throw new NotFoundException('Usuario nao encontrado');
     }
 
-    usuario.atualizarPerfil({
+    const departamentoId = input.departamentoId ?? usuario.departamentoId;
+
+    const atualizado = new Usuario({
+      id: usuario.id,
+      empresaId: input.empresaId,
+      departamentoId,
+      nome: input.nome ?? usuario.nome,
+      email: input.email ?? usuario.email,
+      senhaHash: input.senhaHash ?? usuario.senhaHash,
+      ativo: input.ativo ?? usuario.ativo,
+      createdAt: usuario.createdAt,
+      updatedAt: usuario.updatedAt,
+    });
+
+    atualizado.atualizarPerfil({
       nome: input.nome,
       email: input.email,
       senhaHash: input.senhaHash,
       ativo: input.ativo,
     });
 
-    await this.usuarioRepository.save(usuario);
+    await this.usuarioRepository.save(atualizado);
 
-    return usuario;
+    return atualizado;
   }
 }
