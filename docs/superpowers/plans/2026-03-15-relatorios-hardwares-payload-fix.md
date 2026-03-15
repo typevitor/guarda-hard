@@ -28,7 +28,7 @@
 
 - Test: `app/src/features/relatorios/server/relatorios-api.test.ts`
 
-- [ ] **Step 1: Write failing/contract tests for object payload parsing**
+- [x] **Step 1: Write failing/contract tests for object payload parsing**
 
 Add/update tests in `getRelatorioResultado` suite so `/relatorios/hardwares` mock returns:
 
@@ -57,7 +57,7 @@ Required assertions for this case:
   `codigoPatrimonio`, `status`, `usuarioId`, `dataRetirada`,
   `dataDevolucao`)
 
-- [ ] **Step 2: Add zero-registros regression test**
+- [x] **Step 2: Add zero-registros regression test**
 
 Add test for empty response:
 
@@ -71,7 +71,7 @@ Assert:
 - `result.total` is `0`
 - `result.linhas` equals `[]`
 
-- [ ] **Step 3: Add malformed `linhas` regression tests**
+- [x] **Step 3: Add malformed `linhas` regression tests**
 
 Add two tests with malformed `linhas`:
 
@@ -93,7 +93,7 @@ Expected totals for these malformed cases:
 - `{ total: 5, linhas: null }` -> `result.total === 5`
 - `{ total: 2, linhas: {} }` -> `result.total === 2`
 
-- [ ] **Step 4: Run focused test file to confirm RED (or at least new assertions fail before implementation)**
+- [x] **Step 4: Run focused test file to confirm RED (or at least new assertions fail before implementation)**
 
 Run:
 
@@ -119,7 +119,7 @@ Expected:
 - Modify: `app/src/features/relatorios/server/relatorios-api.ts`
 - Test: `app/src/features/relatorios/server/relatorios-api.test.ts`
 
-- [ ] **Step 1: Add explicit payload type for situacao endpoint**
+- [x] **Step 1: Add explicit payload type for situacao endpoint**
 
 In `relatorios-api.ts`, add type near existing API row types:
 
@@ -130,7 +130,7 @@ type RelatorioSituacaoPayload = {
 };
 ```
 
-- [ ] **Step 2: Parse `/relatorios/hardwares` as object payload**
+- [x] **Step 2: Parse `/relatorios/hardwares` as object payload**
 
 Update fetch call to start from unknown payload:
 
@@ -140,7 +140,7 @@ const rawPayload = await fetchJson<unknown>(`/relatorios/hardwares${statusQuery}
 
 and stop treating top-level response as array.
 
-- [ ] **Step 3: Guard root payload and normalize `linhas` before filtering**
+- [x] **Step 3: Guard root payload and normalize `linhas` before filtering**
 
 Add safe root payload extraction:
 
@@ -157,7 +157,7 @@ const linhasOriginais = Array.isArray(payload.linhas) ? payload.linhas : [];
 
 Use `linhasOriginais.filter(...).map(...)` for the existing filter/mapping flow.
 
-- [ ] **Step 4: Implement deterministic `total` rule**
+- [x] **Step 4: Implement deterministic `total` rule**
 
 Set returned `total` as:
 
@@ -170,7 +170,7 @@ const total =
 
 Return this `total` in `RelatorioResultado`.
 
-- [ ] **Step 5: Run focused relatorios-api tests to confirm GREEN**
+- [x] **Step 5: Run focused relatorios-api tests to confirm GREEN**
 
 Run:
 
@@ -182,7 +182,7 @@ Expected:
 
 - PASS
 
-- [ ] **Step 6: Run broader relatorios tests as regression check**
+- [x] **Step 6: Run broader relatorios tests as regression check**
 
 Run:
 
@@ -194,7 +194,7 @@ Expected:
 
 - PASS
 
-- [ ] **Step 7: Commit implementation changes**
+- [x] **Step 7: Commit implementation changes**
 
 ```bash
 git add app/src/features/relatorios/server/relatorios-api.ts app/src/features/relatorios/server/relatorios-api.test.ts
@@ -211,7 +211,7 @@ git commit -m "fix(app): align relatorios hardwares parsing with payload contrac
 
 - No additional file changes expected
 
-- [ ] **Step 1: Re-run targeted tests for evidence**
+- [x] **Step 1: Re-run targeted tests for evidence**
 
 Run:
 
@@ -229,7 +229,7 @@ Expected:
   - zero failures
   - explicit mention that malformed/empty `linhas` regression tests passed.
 
-- [ ] **Step 2: Optional smoke check in relatorios route (if local env is available)**
+- [x] **Step 2: Optional smoke check in relatorios route (if local env is available)**
 
 Run app and open `/relatorios`, verifying:
 
@@ -239,7 +239,7 @@ Run app and open `/relatorios`, verifying:
 If smoke check cannot run (env unavailable), record that constraint and use
 Step 1 test evidence as substitute verification.
 
-- [ ] **Step 3: Prepare concise evidence summary for PR/hand-off**
+- [x] **Step 3: Prepare concise evidence summary for PR/hand-off**
 
 Include:
 
