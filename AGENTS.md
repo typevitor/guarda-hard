@@ -9,3 +9,7 @@
 
 - Before generating or reorganizing application code, consult `docs/architecture.md`.
 - Follow the NestJS and Next.js modular boundaries defined there.
+
+## frontend design skill
+
+- For frontend UI work (new pages, components, layout redesigns, or visual polish), use the local `frontend-design` skill at `.claude/skills/frontend-design/SKILL.md`.
