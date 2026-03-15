@@ -1,4 +1,12 @@
-import { Controller, Get, Header, Inject, Query, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  Inject,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-validation.pipe';
 import {
@@ -8,8 +16,10 @@ import {
   type RelatorioHardwaresQueryDto,
 } from '../../application/dto/relatorio.schemas';
 import { RelatoriosService } from '../../application/services/relatorios.service';
+import { SessionPhaseGuard } from '../../../auth/presentation/http/session-phase.guard';
 
 @Controller('relatorios')
+@UseGuards(SessionPhaseGuard)
 export class RelatoriosController {
   constructor(
     @Inject(RelatoriosService)

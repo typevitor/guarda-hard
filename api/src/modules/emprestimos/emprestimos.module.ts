@@ -11,6 +11,7 @@ import { EmprestimosController } from './presentation/http/emprestimos.controlle
 import { HardwaresModule } from '../hardwares/hardwares.module';
 import { UsuariosModule } from '../usuarios/usuarios.module';
 import { TenantModule } from '../../tenant/tenant.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TenantModule } from '../../tenant/tenant.module';
     HardwaresModule,
     UsuariosModule,
     TenantModule,
+    AuthModule,
   ],
   controllers: [EmprestimosController],
   providers: [

@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UsuariosService } from '../../application/services/usuarios.service';
 import {
@@ -22,6 +23,7 @@ import {
 } from '../../application/dto/usuario.schemas';
 import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-validation.pipe';
 import { Usuario } from '../../domain/entities/usuario.entity';
+import { SessionPhaseGuard } from '../../../auth/presentation/http/session-phase.guard';
 
 type UsuarioHttpResponse = {
   id: string;
@@ -43,6 +45,7 @@ type PaginatedUsuarioHttpResponse = {
 };
 
 @Controller('usuarios')
+@UseGuards(SessionPhaseGuard)
 export class UsuariosController {
   constructor(
     @Inject(UsuariosService)

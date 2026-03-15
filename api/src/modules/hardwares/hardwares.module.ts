@@ -14,9 +14,14 @@ import { ConsertarHardwareUseCase } from './application/use-cases/consertar-hard
 import { HardwaresService } from './application/services/hardwares.service';
 import { HardwaresController } from './presentation/http/hardwares.controller';
 import { TenantModule } from '../../tenant/tenant.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([HardwareOrmEntity]), TenantModule],
+  imports: [
+    TypeOrmModule.forFeature([HardwareOrmEntity]),
+    TenantModule,
+    AuthModule,
+  ],
   controllers: [HardwaresController],
   providers: [
     {

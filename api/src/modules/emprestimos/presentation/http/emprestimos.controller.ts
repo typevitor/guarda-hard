@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { EmprestimosService } from '../../application/services/emprestimos.service';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../../application/dto/emprestimo.schemas';
 import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-validation.pipe';
 import { Emprestimo } from '../../domain/entities/emprestimo.entity';
+import { SessionPhaseGuard } from '../../../auth/presentation/http/session-phase.guard';
 
 type EmprestimoHttpResponse = {
   id: string;
@@ -38,6 +40,7 @@ type PaginatedEmprestimoHttpResponse = {
 };
 
 @Controller('emprestimos')
+@UseGuards(SessionPhaseGuard)
 export class EmprestimosController {
   constructor(
     @Inject(EmprestimosService)

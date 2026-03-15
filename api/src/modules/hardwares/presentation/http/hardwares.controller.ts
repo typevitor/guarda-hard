@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { HardwaresService } from '../../application/services/hardwares.service';
 import {
@@ -24,6 +25,7 @@ import {
 } from '../../application/dto/hardware.schemas';
 import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-validation.pipe';
 import { Hardware } from '../../domain/entities/hardware.entity';
+import { SessionPhaseGuard } from '../../../auth/presentation/http/session-phase.guard';
 
 type HardwareHttpResponse = {
   id: string;
@@ -49,6 +51,7 @@ type PaginatedHardwareHttpResponse = {
 };
 
 @Controller('hardwares')
+@UseGuards(SessionPhaseGuard)
 export class HardwaresController {
   constructor(
     @Inject(HardwaresService)
