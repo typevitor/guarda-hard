@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -26,6 +27,10 @@ type UserLookupRow = {
   ativo: number;
 };
 
+type DepartamentoLookupRow = {
+  id: string;
+};
+
 type UsuarioEmpresaRow = {
   usuario_id: string;
 };
@@ -35,6 +40,7 @@ export class AuthService {
   constructor(
     @InjectDataSource()
     private readonly dataSource: DataSource,
+    @Inject(PasswordHasher)
     private readonly passwordHasher: PasswordHasher,
   ) {}
 
@@ -76,12 +82,31 @@ export class AuthService {
         [userId, nome, email, senhaHash],
       );
 
+      const departamentos = (await manager.query(
+        `
+        SELECT id
+        FROM departamentos
+        WHERE empresa_id = ?
+        ORDER BY created_at ASC
+        LIMIT 1
+        `,
+        [input.empresaId],
+      )) as unknown as DepartamentoLookupRow[];
+
+      const departamento = departamentos[0];
+
+      if (!departamento) {
+        throw new BadRequestException(
+          'Empresa sem departamento para associar usuario',
+        );
+      }
+
       await manager.query(
         `
-        INSERT INTO usuario_empresas (usuario_id, empresa_id, created_at, updated_at)
-        VALUES (?, ?, datetime('now'), datetime('now'))
+        INSERT INTO usuario_empresas (usuario_id, empresa_id, departamento_id, created_at, updated_at)
+        VALUES (?, ?, ?, datetime('now'), datetime('now'))
         `,
-        [userId, input.empresaId],
+        [userId, input.empresaId, departamento.id],
       );
     });
 

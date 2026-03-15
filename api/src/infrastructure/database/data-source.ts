@@ -7,15 +7,30 @@ import { HardwareOrmEntity } from '../../modules/hardwares/infrastructure/persis
 import { EmprestimoOrmEntity } from '../../modules/emprestimos/infrastructure/persistence/emprestimo.orm-entity';
 
 const apiRoot = path.resolve(__dirname, '../../..');
-const databaseFilePath = path.resolve(apiRoot, 'data/guarda-hard.sqlite');
+const defaultDatabaseFilePath = path.resolve(
+  apiRoot,
+  'data/guarda-hard.sqlite',
+);
 const migrationsGlobPath = path.resolve(
   __dirname,
   './migrations/[0-9]*{.ts,.js}',
 );
 
+function resolveDatabaseFilePath(): string {
+  const configuredPath = process.env.DATABASE_PATH?.trim();
+
+  if (!configuredPath) {
+    return defaultDatabaseFilePath;
+  }
+
+  return path.isAbsolute(configuredPath)
+    ? configuredPath
+    : path.resolve(apiRoot, configuredPath);
+}
+
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
-  database: databaseFilePath,
+  database: resolveDatabaseFilePath(),
   entities: [
     DepartamentoOrmEntity,
     UsuarioOrmEntity,
