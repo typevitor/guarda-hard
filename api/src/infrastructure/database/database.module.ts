@@ -14,17 +14,16 @@ const logger = new Logger('DatabaseModule');
 async function ensureUsuarioEmpresasDepartamentoColumn(
   dataSource: DataSource,
 ): Promise<void> {
-  const sqliteTables = (await dataSource.query(
+  const sqliteTables: Array<{ name: string }> = await dataSource.query(
     `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'usuario_empresas'`,
-  )) as Array<{ name: string }>;
+  );
 
   if (sqliteTables.length === 0) {
     return;
   }
 
-  const columns = (await dataSource.query(
-    `PRAGMA table_info('usuario_empresas')`,
-  )) as Array<{ name: string; notnull: number }>;
+  const columns: Array<{ name: string; notnull: number }> =
+    await dataSource.query(`PRAGMA table_info('usuario_empresas')`);
 
   if (columns.some((column) => column.name === 'departamento_id')) {
     const departamentoColumn = columns.find(

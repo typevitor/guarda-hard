@@ -248,7 +248,7 @@ export class TypeOrmUsuarioRepository implements IUsuarioRepository {
         await manager.save(UsuarioOrmEntity, orm);
       }
 
-      const membership = await manager.query(
+      const membership: unknown[] = await manager.query(
         `
         SELECT usuario_id
         FROM usuario_empresas
@@ -258,7 +258,7 @@ export class TypeOrmUsuarioRepository implements IUsuarioRepository {
         [usuario.id, empresaId],
       );
 
-      if ((membership as unknown[]).length === 0) {
+      if (membership.length === 0) {
         await manager.query(
           `
           INSERT INTO usuario_empresas (
@@ -297,7 +297,7 @@ export class TypeOrmUsuarioRepository implements IUsuarioRepository {
         [id, empresaId],
       );
 
-      const remainingMemberships = (await manager.query(
+      const remainingMemberships: unknown[] = await manager.query(
         `
         SELECT usuario_id
         FROM usuario_empresas
@@ -305,7 +305,7 @@ export class TypeOrmUsuarioRepository implements IUsuarioRepository {
         LIMIT 1
         `,
         [id],
-      )) as unknown[];
+      );
 
       if (remainingMemberships.length === 0) {
         await manager.delete(UsuarioOrmEntity, { id });
