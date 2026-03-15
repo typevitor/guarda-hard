@@ -38,20 +38,23 @@ describe("getRelatorioResultado", () => {
 
     const fetchMock = vi.fn(async (url: string) => {
       if (url.includes("/relatorios/hardwares")) {
-        return mockFetchJson([
-          {
-            hardwareId: "hw-1",
-            descricao: "Notebook",
-            codigoPatrimonio: "PAT-1",
-            status: "emprestado",
-            usuarioId: "user-active",
-            dataRetirada: "2026-03-01",
-            dataDevolucao: null,
-          },
-        ]);
+        return mockFetchJson({
+          total: 1,
+          linhas: [
+            {
+              hardwareId: "hw-1",
+              descricao: "Notebook",
+              codigoPatrimonio: "PAT-1",
+              status: "emprestado",
+              usuarioId: "user-active",
+              dataRetirada: "2026-03-01",
+              dataDevolucao: null,
+            },
+          ],
+        });
       }
 
-      return mockFetchJson([]);
+      return mockFetchJson({ total: 0, linhas: [] });
     });
 
     vi.stubGlobal("fetch", fetchMock);
@@ -81,26 +84,29 @@ describe("getRelatorioResultado", () => {
     mockCookies("tenant=1");
 
     const fetchMock = vi.fn(async () =>
-      mockFetchJson([
-        {
-          hardwareId: "hw-1",
-          descricao: "Notebook Dell",
-          codigoPatrimonio: "PAT-1",
-          status: "emprestado",
-          usuarioId: "ana-1",
-          dataRetirada: "2026-03-05",
-          dataDevolucao: null,
-        },
-        {
-          hardwareId: "hw-2",
-          descricao: "Desktop",
-          codigoPatrimonio: "PAT-2",
-          status: "disponivel",
-          usuarioId: null,
-          dataRetirada: null,
-          dataDevolucao: null,
-        },
-      ]),
+      mockFetchJson({
+        total: 2,
+        linhas: [
+          {
+            hardwareId: "hw-1",
+            descricao: "Notebook Dell",
+            codigoPatrimonio: "PAT-1",
+            status: "emprestado",
+            usuarioId: "ana-1",
+            dataRetirada: "2026-03-05",
+            dataDevolucao: null,
+          },
+          {
+            hardwareId: "hw-2",
+            descricao: "Desktop",
+            codigoPatrimonio: "PAT-2",
+            status: "disponivel",
+            usuarioId: null,
+            dataRetirada: null,
+            dataDevolucao: null,
+          },
+        ],
+      }),
     );
 
     vi.stubGlobal("fetch", fetchMock);
@@ -115,8 +121,50 @@ describe("getRelatorioResultado", () => {
       hardware: "dell",
     });
 
-    expect(result.total).toBe(1);
+    expect(result.total).toBe(2);
     expect(result.linhas[0]?.hardwareId).toBe("hw-1");
+  });
+
+  it("nao quebra com zero registros", async () => {
+    mockCookies("tenant=1");
+
+    const fetchMock = vi.fn(async () => mockFetchJson({ total: 0, linhas: [] }));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { getRelatorioResultado } = await loadModule();
+    const result = await getRelatorioResultado(filtros);
+
+    expect(result.total).toBe(0);
+    expect(result.linhas).toEqual([]);
+  });
+
+  it("normaliza linhas nulas sem quebrar e preserva total valido", async () => {
+    mockCookies("tenant=1");
+
+    const fetchMock = vi.fn(async () => mockFetchJson({ total: 5, linhas: null }));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { getRelatorioResultado } = await loadModule();
+    const result = await getRelatorioResultado(filtros);
+
+    expect(result.total).toBe(5);
+    expect(result.linhas).toEqual([]);
+  });
+
+  it("normaliza linhas em objeto sem quebrar e preserva total valido", async () => {
+    mockCookies("tenant=1");
+
+    const fetchMock = vi.fn(async () => mockFetchJson({ total: 2, linhas: {} }));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { getRelatorioResultado } = await loadModule();
+    const result = await getRelatorioResultado(filtros);
+
+    expect(result.total).toBe(2);
+    expect(result.linhas).toEqual([]);
   });
 });
 

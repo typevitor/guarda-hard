@@ -54,6 +54,11 @@ export type RelatorioHistoricoResultado = {
   linhas: RelatorioHistoricoLinha[];
 };
 
+type RelatorioSituacaoPayload = {
+  total?: unknown;
+  linhas?: unknown;
+};
+
 function parseSearchValue(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
     return value[0] ?? "";
@@ -143,9 +148,12 @@ export async function getRelatorioResultado(
   const filtros = relatorioFiltrosSchema.parse(rawFiltros);
   const statusQuery = filtros.status ? `?status=${encodeURIComponent(filtros.status)}` : "";
 
-  const linhasApi = await fetchJson<HardwareApiRow[]>(`/relatorios/hardwares${statusQuery}`);
+  const rawPayload = await fetchJson<unknown>(`/relatorios/hardwares${statusQuery}`);
+  const payload: RelatorioSituacaoPayload =
+    rawPayload && typeof rawPayload === "object" ? (rawPayload as RelatorioSituacaoPayload) : {};
+  const linhasOriginais = Array.isArray(payload.linhas) ? (payload.linhas as HardwareApiRow[]) : [];
 
-  const linhas = linhasApi
+  const linhas = linhasOriginais
     .filter((linha) => {
       if (!isHardwareMatch(linha, filtros.hardware)) {
         return false;
@@ -169,10 +177,15 @@ export async function getRelatorioResultado(
       } satisfies RelatorioLinha;
     });
 
+  const total =
+    typeof payload.total === "number" && Number.isFinite(payload.total)
+      ? payload.total
+      : linhasOriginais.length;
+
   return {
     queryString: buildRelatorioQueryString(filtros),
     filtros,
-    total: linhas.length,
+    total,
     linhas,
   };
 }
