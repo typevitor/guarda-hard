@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { App } from 'supertest/types';
 import { AppModule } from '../../../../app.module';
 import { AuthService } from '../../application/services/auth.service';
@@ -137,6 +137,10 @@ describe('AuthController', () => {
     app.useGlobalFilters(new ApiErrorFilter());
     await app.init();
     httpServer = app.getHttpServer() as App;
+  });
+
+  afterEach(async () => {
+    await app?.close();
   });
 
   it('GET /auth/empresas lists public empresas', async () => {

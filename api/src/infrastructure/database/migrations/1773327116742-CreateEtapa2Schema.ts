@@ -4,6 +4,14 @@ export class CreateEtapa2Schema1773327116742 implements MigrationInterface {
   name = 'CreateEtapa2Schema1773327116742';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const existingTables: Array<{ name: string }> = await queryRunner.query(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name IN ('departamentos','usuarios','hardwares','emprestimos')`,
+    );
+
+    if (existingTables.length === 4) {
+      return;
+    }
+
     await queryRunner.query(
       `CREATE TABLE "departamentos" ("id" varchar PRIMARY KEY NOT NULL, "empresa_id" varchar(36) NOT NULL, "nome" varchar(100) NOT NULL, "created_at" datetime NOT NULL DEFAULT (datetime('now')), "updated_at" datetime NOT NULL DEFAULT (datetime('now')))`,
     );
