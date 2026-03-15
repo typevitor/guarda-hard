@@ -13,18 +13,8 @@ describe('UsuarioOrmEntity metadata', () => {
     const meta = AppDataSource.getMetadata('UsuarioOrmEntity');
     const cols = meta.columns.map((c) => c.propertyName);
     expect(cols).toEqual(
-      expect.arrayContaining([
-        'id',
-        'empresa_id',
-        'departamento_id',
-        'nome',
-        'email',
-        'senha_hash',
-        'ativo',
-      ]),
+      expect.arrayContaining(['id', 'nome', 'email', 'senha_hash', 'ativo']),
     );
-    expect(meta.relations.map((r) => r.propertyName)).toEqual(
-      expect.arrayContaining(['departamento']),
-    );
+    expect(meta.relations.map((r) => r.propertyName)).toEqual([]);
   });
 });
