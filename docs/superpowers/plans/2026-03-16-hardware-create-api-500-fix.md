@@ -23,6 +23,7 @@
 Run: `pnpm --filter @guarda-hard/app dev`
 Expected: creating hardware triggers a `500` in the browser/network while backend may return a non-2xx validation/auth response.
 Evidence:
+
 - Executed command: `pnpm --filter @guarda-hard/app dev`
 - Observed output: Next dev started successfully (`Ready in 1440ms`, `http://localhost:3000`) and kept running until tool timeout terminated it (`SIGTERM`).
 
@@ -30,6 +31,7 @@ Evidence:
 
 In `app/src/features/hardwares/components/hardwares-page.tsx`, temporarily capture thrown error shape (`name`, `status`, `message`) from `onSubmit` and surface in modal error text for local diagnosis.
 Status note:
+
 - Temporary diagnostics were not introduced as permanent UI debug text.
 - Root-cause boundary evidence came from failing contract tests (missing `marca`/`modelo` in frontend payload) and API regression behavior (`400` for invalid payload), then final durable status-based UX mapping was implemented.
 - Checkbox remains completed because boundary investigation was performed and no temporary noisy diagnostics remain.
@@ -39,6 +41,7 @@ Status note:
 Run: `pnpm --filter @guarda-hard/api exec vitest run api/test/api/hardwares.api.spec.ts`
 Expected: API returns deterministic status (`400` for invalid payload, `201` for valid payload), confirming whether frontend `500` is boundary translation.
 Evidence:
+
 - Executed equivalent package-relative command: `pnpm --filter @guarda-hard/api exec vitest run test/api/hardwares.api.spec.ts`
 - Observed output: `✓ test/api/hardwares.api.spec.ts (3 tests)` and all tests passed, including the invalid-create regression (`400` path stable).
 
@@ -71,6 +74,7 @@ In `api/test/api/hardwares.api.spec.ts`, add/extend test that invalid create pay
 Run: `pnpm --filter @guarda-hard/app exec vitest run app/src/features/hardwares/server/hardwares-api.test.ts app/src/features/hardwares/forms/hardware-form.test.tsx`
 Expected: FAIL before implementation changes.
 Evidence:
+
 - Executed equivalent package-relative command: `pnpm --filter @guarda-hard/app exec vitest run src/features/hardwares/server/hardwares-api.test.ts src/features/hardwares/forms/hardware-form.test.tsx`
 - Observed pre-implementation RED output: contract test failed because submitted body lacked `marca`/`modelo`; form tests failed due to missing `Marca`/`Modelo` inputs and non-blocked invalid submissions.
 
@@ -132,6 +136,7 @@ Extend `app/src/features/hardwares/forms/hardware-form.test.tsx` (or create comp
 Run: `pnpm --filter @guarda-hard/app exec vitest run app/src/features/hardwares/server/hardwares-api.test.ts app/src/features/hardwares/forms/hardware-form.test.tsx`
 Expected: PASS.
 Evidence:
+
 - Executed equivalent package-relative command: `pnpm --filter @guarda-hard/app exec vitest run src/features/hardwares/server/hardwares-api.test.ts src/features/hardwares/forms/hardware-form.test.tsx`
 - Observed output: `2 passed` test files and `11 passed` tests.
 
@@ -140,6 +145,7 @@ Evidence:
 Run: `pnpm --filter @guarda-hard/api exec vitest run api/test/api/hardwares.api.spec.ts`
 Expected: PASS.
 Evidence:
+
 - Executed equivalent package-relative command: `pnpm --filter @guarda-hard/api exec vitest run test/api/hardwares.api.spec.ts`
 - Observed output: `1 passed` test file and `3 passed` tests.
 
@@ -148,6 +154,7 @@ Evidence:
 Run: `pnpm --filter @guarda-hard/app test && pnpm --filter @guarda-hard/api test`
 Expected: PASS with no new regressions.
 Evidence:
+
 - Executed command: `pnpm --filter @guarda-hard/app test && pnpm --filter @guarda-hard/api test`
 - Observed output: app suite passed (`30 passed` files, `120 passed` tests); API suite passed (`57 passed` files, `121 passed` tests).
 
@@ -156,6 +163,7 @@ Evidence:
 Run: `pnpm --filter @guarda-hard/app dev`
 Expected: valid create succeeds with success banner; invalid data shows clear validation/auth message and does not appear as opaque `500` to user.
 Evidence:
+
 - Executed command: `pnpm --filter @guarda-hard/app dev`
 - Observed output: Next dev server started successfully (`Ready in 726ms`, `http://localhost:3000`) until tool timeout sent `SIGTERM`.
 - Non-interactive limitation: this environment cannot perform browser UI interactions, so submit-flow assertions (success banner, validation/auth modal messaging) are not directly verifiable here without interactive/manual browser steps.

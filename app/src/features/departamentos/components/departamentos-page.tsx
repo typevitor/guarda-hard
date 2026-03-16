@@ -1,20 +1,18 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
-import { FeedbackBanner } from "@/components/ui/feedback-banner";
-import { FilterBar } from "@/components/ui/filter-bar";
-import { Modal } from "@/components/ui/modal";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { FeedbackBanner } from '@/components/ui/feedback-banner';
+import { FilterBar } from '@/components/ui/filter-bar';
+import { Modal } from '@/components/ui/modal';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
-import {
-  DepartamentoForm,
-} from "../forms/departamento-form";
-import type { DepartamentosListQuery } from "../schemas/departamentos-list-query-schema";
-import type { DepartamentoPayload } from "../schemas/departamento-schema";
-import type { DepartamentoListResponse } from "../server/departamentos-list-api";
-import { DepartamentosList } from "./departamentos-list";
+import { DepartamentoForm } from '../forms/departamento-form';
+import type { DepartamentosListQuery } from '../schemas/departamentos-list-query-schema';
+import type { DepartamentoPayload } from '../schemas/departamento-schema';
+import type { DepartamentoListResponse } from '../server/departamentos-list-api';
+import { DepartamentosList } from './departamentos-list';
 
 type DepartamentosPageProps = {
   onSubmit: (values: DepartamentoPayload) => Promise<void>;
@@ -28,16 +26,16 @@ export function DepartamentosPage({ onSubmit, list, query }: DepartamentosPagePr
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeQuery, setActiveQuery] = useState(query);
   const [status, setStatus] = useState<{
-    type: "success" | "error";
+    type: 'success' | 'error';
     message: string;
   } | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
 
   const pushQuery = (nextQuery: DepartamentosListQuery): void => {
     const params = new URLSearchParams();
-    params.set("page", String(nextQuery.page));
+    params.set('page', String(nextQuery.page));
     if (nextQuery.search) {
-      params.set("search", nextQuery.search);
+      params.set('search', nextQuery.search);
     }
     router.push(`${pathname}?${params.toString()}`);
   };
@@ -48,11 +46,11 @@ export function DepartamentosPage({ onSubmit, list, query }: DepartamentosPagePr
     try {
       await onSubmit(values);
       setIsModalOpen(false);
-      setStatus({ type: "success", message: "Departamento criado com sucesso" });
+      setStatus({ type: 'success', message: 'Departamento criado com sucesso' });
       router.refresh();
     } catch {
-      setModalError("Nao foi possivel criar departamento");
-      throw new Error("submit failed");
+      setModalError('Nao foi possivel criar departamento');
+      throw new Error('submit failed');
     }
   };
 
@@ -72,7 +70,7 @@ export function DepartamentosPage({ onSubmit, list, query }: DepartamentosPagePr
               setIsModalOpen(true);
             }}
           >
-            New
+            Novo departamento
           </button>
         </div>
       </div>
@@ -88,7 +86,7 @@ export function DepartamentosPage({ onSubmit, list, query }: DepartamentosPagePr
           pushQuery(nextQuery);
         }}
         onClearFilters={() => {
-          const nextQuery = { ...activeQuery, search: "", page: 1 };
+          const nextQuery = { ...activeQuery, search: '', page: 1 };
           setActiveQuery(nextQuery);
           pushQuery(nextQuery);
         }}
@@ -108,7 +106,12 @@ export function DepartamentosPage({ onSubmit, list, query }: DepartamentosPagePr
 
       <Modal open={isModalOpen} onOpenChange={setIsModalOpen} title="Novo departamento">
         {modalError ? <FeedbackBanner type="error" message={modalError} /> : null}
-        <DepartamentoForm onSubmit={handleSubmit} />
+        <DepartamentoForm
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setIsModalOpen(false);
+          }}
+        />
       </Modal>
     </section>
   );
