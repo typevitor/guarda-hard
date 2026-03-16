@@ -32,6 +32,46 @@ describe('HardwareForm', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it('validates required marca before submit', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(<HardwareForm onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText('Descricao'), {
+      target: { value: 'Notebook Dell' },
+    });
+    fireEvent.change(screen.getByLabelText('Modelo'), {
+      target: { value: 'Latitude' },
+    });
+    fireEvent.change(screen.getByLabelText('Codigo patrimonio'), {
+      target: { value: 'PAT-001' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(await screen.findByText('Marca e obrigatoria')).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('validates required modelo before submit', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(<HardwareForm onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText('Descricao'), {
+      target: { value: 'Notebook Dell' },
+    });
+    fireEvent.change(screen.getByLabelText('Marca'), {
+      target: { value: 'Dell' },
+    });
+    fireEvent.change(screen.getByLabelText('Codigo patrimonio'), {
+      target: { value: 'PAT-001' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(await screen.findByText('Modelo e obrigatorio')).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('submits payload when form is valid', async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 
@@ -43,11 +83,19 @@ describe('HardwareForm', () => {
     fireEvent.change(screen.getByLabelText('Codigo patrimonio'), {
       target: { value: 'PAT-001' },
     });
+    fireEvent.change(screen.getByLabelText('Marca'), {
+      target: { value: 'Dell' },
+    });
+    fireEvent.change(screen.getByLabelText('Modelo'), {
+      target: { value: 'Latitude' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith({
         descricao: 'Notebook Dell',
+        marca: 'Dell',
+        modelo: 'Latitude',
         codigoPatrimonio: 'PAT-001',
       });
     });
@@ -74,6 +122,12 @@ describe('HardwareForm', () => {
     fireEvent.change(screen.getByLabelText('Codigo patrimonio'), {
       target: { value: 'PAT-001' },
     });
+    fireEvent.change(screen.getByLabelText('Marca'), {
+      target: { value: 'Dell' },
+    });
+    fireEvent.change(screen.getByLabelText('Modelo'), {
+      target: { value: 'Latitude' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(screen.getByRole('button', { name: 'Salvando...' }).hasAttribute('disabled')).toBe(true);
@@ -99,6 +153,12 @@ describe('HardwareForm', () => {
     });
     fireEvent.change(screen.getByLabelText('Codigo patrimonio'), {
       target: { value: 'PAT-999' },
+    });
+    fireEvent.change(screen.getByLabelText('Marca'), {
+      target: { value: 'Dell' },
+    });
+    fireEvent.change(screen.getByLabelText('Modelo'), {
+      target: { value: 'Latitude' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 

@@ -20,6 +20,8 @@ export function HardwareForm({ onSubmit, onCancel }: HardwareFormProps) {
     resolver: zodResolver(hardwareSchema),
     defaultValues: {
       descricao: '',
+      marca: '',
+      modelo: '',
       codigoPatrimonio: '',
     },
   });
@@ -46,6 +48,18 @@ export function HardwareForm({ onSubmit, onCancel }: HardwareFormProps) {
         <label htmlFor="codigoPatrimonio">Codigo patrimonio</label>
         <input id="codigoPatrimonio" type="text" {...register('codigoPatrimonio')} />
         {errors.codigoPatrimonio ? <p role="alert">{errors.codigoPatrimonio.message}</p> : null}
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="marca">Marca</label>
+        <input id="marca" type="text" {...register('marca')} />
+        {errors.marca ? <p role="alert">{errors.marca.message}</p> : null}
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="modelo">Modelo</label>
+        <input id="modelo" type="text" {...register('modelo')} />
+        {errors.modelo ? <p role="alert">{errors.modelo.message}</p> : null}
       </div>
 
       <div className="modal-actions">

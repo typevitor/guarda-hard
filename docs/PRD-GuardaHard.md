@@ -581,3 +581,4 @@ Tarefas paralelas:
 - [x] Task 6 - Protecao global de rotas por fase
 - [x] Task 7 - Verificacao final e quality gate
 - [x] Task 8 - Criacao de usuario com select de departamentos por tenant e departamento opcional
+- [x] Task 9 - Correcao do erro 500 na criacao de hardware com alinhamento de payload e mensagens de erro

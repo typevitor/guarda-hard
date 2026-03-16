@@ -3,11 +3,30 @@ import { hardwaresListQuerySchema } from "@/features/hardwares/schemas/hardwares
 import type { HardwarePayload } from "@/features/hardwares/schemas/hardware-schema";
 import { createHardwareServer } from "@/features/hardwares/server/hardwares-api";
 import { listHardwaresServer } from "@/features/hardwares/server/hardwares-list-api";
+import { ApiError } from "@/lib/api/errors";
 
-async function submitHardware(values: HardwarePayload): Promise<void> {
+async function submitHardware(
+  values: HardwarePayload,
+): Promise<{ ok: true } | { ok: false; status?: number; message: string }> {
   "use server";
 
-  await createHardwareServer(values);
+  try {
+    await createHardwareServer(values);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return {
+        ok: false,
+        status: error.status,
+        message: error.message,
+      };
+    }
+
+    return {
+      ok: false,
+      message: "Nao foi possivel criar hardware",
+    };
+  }
 }
 
 type HardwaresRoutePageProps = {

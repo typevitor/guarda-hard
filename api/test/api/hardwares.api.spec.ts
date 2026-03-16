@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppModule } from '../../src/app.module';
 import { HARDWARE_REPOSITORY } from '../../src/modules/hardwares/domain/repositories/hardware.repository.interface';
 import { Hardware } from '../../src/modules/hardwares/domain/entities/hardware.entity';
@@ -122,6 +122,10 @@ describe('Hardwares API', () => {
     tenantContext = app.get(TenantContext);
   });
 
+  afterEach(async () => {
+    await app.close();
+  });
+
   it('supports CRUD, defeito, conserto and cross-tenant isolation', async () => {
     tenantContext.setEmpresaId('empresa-a');
     repository.setCurrentTenant('empresa-a');
@@ -210,5 +214,18 @@ describe('Hardwares API', () => {
       .send({ descricaoProblema: '   ' });
 
     expect(response.status).toBe(400);
+  });
+
+  it('returns 400 for invalid create payload instead of 500', async () => {
+    tenantContext.setEmpresaId('empresa-a');
+    repository.setCurrentTenant('empresa-a');
+
+    const response = await request(app.getHttpServer()).post('/hardwares').send({
+      descricao: 'Notebook',
+      codigoPatrimonio: 'PAT-400',
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBeTruthy();
   });
 });

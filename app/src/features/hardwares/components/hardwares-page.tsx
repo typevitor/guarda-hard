@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { FeedbackBanner } from '@/components/ui/feedback-banner';
@@ -40,10 +40,29 @@ const resolveActivePreset = (query: HardwaresListQuery): HardwarePresetId => {
 };
 
 type HardwaresPageProps = {
-  onSubmit: (values: HardwarePayload) => Promise<void>;
+  onSubmit: (values: HardwarePayload) => Promise<{ ok: true } | { ok: false; status?: number; message: string }>;
   list: HardwareListResponse;
   query: HardwaresListQuery;
 };
+
+type HardwareSubmitError = {
+  status?: number;
+  message?: string;
+};
+
+function resolveCreateHardwareErrorMessage(error: unknown): string {
+  const { status, message } = (error ?? {}) as HardwareSubmitError;
+
+  if (status === 400) {
+    return message?.trim() || 'Dados invalidos. Revise os campos obrigatorios e tente novamente.';
+  }
+
+  if (status === 401 || status === 403) {
+    return 'Sua sessao nao permite criar hardware nesta empresa. Entre novamente.';
+  }
+
+  return message?.trim() || 'Nao foi possivel criar hardware';
+}
 
 export function HardwaresPage({ onSubmit, list, query }: HardwaresPageProps) {
   const router = useRouter();
@@ -56,6 +75,10 @@ export function HardwaresPage({ onSubmit, list, query }: HardwaresPageProps) {
   } | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
   const activePresetId = resolveActivePreset(activeQuery);
+
+  useEffect(() => {
+    setActiveQuery(query);
+  }, [query]);
 
   const pushQuery = (nextQuery: HardwaresListQuery): void => {
     const params = new URLSearchParams();
@@ -97,12 +120,18 @@ export function HardwaresPage({ onSubmit, list, query }: HardwaresPageProps) {
     setModalError(null);
 
     try {
-      await onSubmit(values);
+      const result = await onSubmit(values);
+      if (!result.ok) {
+        const mappedMessage = resolveCreateHardwareErrorMessage(result);
+        setModalError(mappedMessage);
+        throw Object.assign(new Error(mappedMessage), { status: result.status });
+      }
+
       setIsModalOpen(false);
       setStatus({ type: 'success', message: 'Hardware criado com sucesso' });
       router.refresh();
     } catch (error) {
-      setModalError('Nao foi possivel criar hardware');
+      setModalError(resolveCreateHardwareErrorMessage(error));
       throw error;
     }
   };
