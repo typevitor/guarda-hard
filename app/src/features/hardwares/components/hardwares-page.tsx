@@ -102,6 +102,7 @@ export function HardwaresPage({ onSubmit, list, query }: HardwaresPageProps) {
       setStatus({ type: 'success', message: 'Hardware criado com sucesso' });
       router.refresh();
     } catch (error) {
+      console.error('Error creating hardware:', error);
       setModalError('Nao foi possivel criar hardware');
       throw error;
     }

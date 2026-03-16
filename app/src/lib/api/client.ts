@@ -27,8 +27,6 @@ export async function apiClient<T = void>({
     headers['Content-Type'] = 'application/json';
   }
 
-  console.log('NEXT_PUBLIC_API_URL', getApiBaseUrl());
-
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     method,
     headers,
