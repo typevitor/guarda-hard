@@ -18,7 +18,7 @@ describe('DepartamentosPage', () => {
   const baseList = {
     items: [{ id: 'dep-1', empresaId: 'emp-1', nome: 'Financeiro', createdAt: '', updatedAt: '' }],
     page: 2,
-    pageSize: 10,
+    pageSize: 10 as const,
     total: 11,
     totalPages: 4,
   };
@@ -34,18 +34,18 @@ describe('DepartamentosPage', () => {
     pushMock.mockReset();
   });
 
-  it('opens modal with New and shows success feedback after submit', async () => {
+  it('opens modal with Novo departamento and shows success feedback after submit', async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 
     render(<DepartamentosPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'New' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Novo departamento' }));
     expect(screen.getByRole('dialog', { name: 'Novo departamento' })).toBeTruthy();
 
     fireEvent.change(screen.getByLabelText('Nome'), {
       target: { value: 'Financeiro' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar departamento' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith({ nome: 'Financeiro' });
@@ -60,12 +60,12 @@ describe('DepartamentosPage', () => {
 
     render(<DepartamentosPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'New' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Novo departamento' }));
 
     fireEvent.change(screen.getByLabelText('Nome'), {
       target: { value: 'Suporte' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar departamento' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByText('Nao foi possivel criar departamento')).toBeTruthy();
     expect(screen.getByRole('dialog', { name: 'Novo departamento' })).toBeTruthy();
@@ -88,9 +88,9 @@ describe('DepartamentosPage', () => {
     });
     expect(pushMock).toHaveBeenCalledWith('/departamentos?page=1&search=suporte');
 
-    expect(screen.getByRole('button', { name: 'New' }).className.includes('btn-primary')).toBe(
-      true,
-    );
+    expect(
+      screen.getByRole('button', { name: 'Novo departamento' }).className.includes('btn-primary'),
+    ).toBe(true);
     expect(screen.getByLabelText('Filtros').className.includes('filter-bar')).toBe(true);
 
     fireEvent.click(screen.getByRole('button', { name: 'Proxima' }));
