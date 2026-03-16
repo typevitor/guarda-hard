@@ -12,7 +12,11 @@ import { GetUsuarioByIdUseCase } from '../use-cases/get-usuario-by-id.use-case';
 import { UpdateUsuarioUseCase } from '../use-cases/update-usuario.use-case';
 import { DeleteUsuarioUseCase } from '../use-cases/delete-usuario.use-case';
 import { ListUsuariosPaginadoUseCase } from '../use-cases/list-usuarios-paginado.use-case';
-import { PaginatedUsuarios } from '../../domain/repositories/usuario.repository.interface';
+import {
+  PaginatedUsuarios,
+  UsuarioOption,
+} from '../../domain/repositories/usuario.repository.interface';
+import { ListUsuariosOptionsUseCase } from '../use-cases/list-usuarios-options.use-case';
 
 @Injectable()
 export class UsuariosService {
@@ -25,6 +29,8 @@ export class UsuariosService {
     private readonly listUsuariosUseCase: ListUsuariosUseCase,
     @Inject(ListUsuariosPaginadoUseCase)
     private readonly listUsuariosPaginadoUseCase: ListUsuariosPaginadoUseCase,
+    @Inject(ListUsuariosOptionsUseCase)
+    private readonly listUsuariosOptionsUseCase: ListUsuariosOptionsUseCase,
     @Inject(GetUsuarioByIdUseCase)
     private readonly getUsuarioByIdUseCase: GetUsuarioByIdUseCase,
     @Inject(UpdateUsuarioUseCase)
@@ -51,6 +57,10 @@ export class UsuariosService {
 
   async listPaginated(query: UsuarioListQueryDto): Promise<PaginatedUsuarios> {
     return this.listUsuariosPaginadoUseCase.execute(query);
+  }
+
+  async listOptions(): Promise<UsuarioOption[]> {
+    return this.listUsuariosOptionsUseCase.execute();
   }
 
   async getById(id: string): Promise<Usuario> {

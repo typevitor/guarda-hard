@@ -5,6 +5,7 @@ import { DataSource, Repository } from 'typeorm';
 import {
   IUsuarioRepository,
   type PaginatedUsuarios,
+  type UsuarioOption,
   type UsuarioListQuery,
 } from '../../domain/repositories/usuario.repository.interface';
 import { Usuario } from '../../domain/entities/usuario.entity';
@@ -226,6 +227,24 @@ export class TypeOrmUsuarioRepository implements IUsuarioRepository {
       total: totalRows,
       totalPages: Math.ceil(totalRows / pageSize),
     };
+  }
+
+  async listOptions(): Promise<UsuarioOption[]> {
+    const empresaId = this.tenantContext.requireEmpresaId();
+
+    return this.ormRepo
+      .createQueryBuilder('usuario')
+      .innerJoin(
+        'usuario_empresas',
+        'ue',
+        'ue.usuario_id = usuario.id AND ue.empresa_id = :empresaId',
+        { empresaId },
+      )
+      .select('usuario.id', 'id')
+      .addSelect('usuario.nome', 'nome')
+      .orderBy('LOWER(usuario.nome)', 'ASC')
+      .addOrderBy('usuario.id', 'ASC')
+      .getRawMany<UsuarioOption>();
   }
 
   async save(usuario: Usuario): Promise<void> {

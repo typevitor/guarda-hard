@@ -17,10 +17,16 @@ export type PaginatedUsuarios = {
   totalPages: number;
 };
 
+export type UsuarioOption = {
+  id: string;
+  nome: string;
+};
+
 export interface IUsuarioRepository {
   findById(id: string): Promise<Usuario | null>;
   findAll(): Promise<Usuario[]>;
   listPaginated(query: UsuarioListQuery): Promise<PaginatedUsuarios>;
+  listOptions(): Promise<UsuarioOption[]>;
   findByEmail?(email: string): Promise<Usuario | null>;
   save(usuario: Usuario): Promise<void>;
   delete(id: string): Promise<void>;

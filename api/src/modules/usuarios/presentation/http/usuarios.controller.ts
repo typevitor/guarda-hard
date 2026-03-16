@@ -24,6 +24,7 @@ import {
 import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-validation.pipe';
 import { Usuario } from '../../domain/entities/usuario.entity';
 import { SessionPhaseGuard } from '../../../auth/presentation/http/session-phase.guard';
+import { UsuarioOption } from '../../domain/repositories/usuario.repository.interface';
 
 type UsuarioHttpResponse = {
   id: string;
@@ -42,6 +43,11 @@ type PaginatedUsuarioHttpResponse = {
   pageSize: 10;
   total: number;
   totalPages: number;
+};
+
+type UsuarioOptionHttpResponse = {
+  id: string;
+  nome: string;
 };
 
 @Controller('usuarios')
@@ -75,6 +81,12 @@ export class UsuariosController {
       total: result.total,
       totalPages: result.totalPages,
     };
+  }
+
+  @Get('options')
+  async listOptions(): Promise<UsuarioOptionHttpResponse[]> {
+    const result = await this.usuariosService.listOptions();
+    return result.map((row) => this.toOptionResponse(row));
   }
 
   @Get(':id')
@@ -120,6 +132,13 @@ export class UsuariosController {
       ativo: entity.ativo,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
+    };
+  }
+
+  private toOptionResponse(entity: UsuarioOption): UsuarioOptionHttpResponse {
+    return {
+      id: entity.id,
+      nome: entity.nome,
     };
   }
 }

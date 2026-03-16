@@ -9,6 +9,7 @@ import { ListUsuariosPaginadoUseCase } from './application/use-cases/list-usuari
 import { GetUsuarioByIdUseCase } from './application/use-cases/get-usuario-by-id.use-case';
 import { UpdateUsuarioUseCase } from './application/use-cases/update-usuario.use-case';
 import { DeleteUsuarioUseCase } from './application/use-cases/delete-usuario.use-case';
+import { ListUsuariosOptionsUseCase } from './application/use-cases/list-usuarios-options.use-case';
 import { UsuariosService } from './application/services/usuarios.service';
 import { UsuariosController } from './presentation/http/usuarios.controller';
 import { TenantModule } from '../../tenant/tenant.module';
@@ -32,6 +33,7 @@ import { AuthModule } from '../auth/auth.module';
     GetUsuarioByIdUseCase,
     UpdateUsuarioUseCase,
     DeleteUsuarioUseCase,
+    ListUsuariosOptionsUseCase,
     UsuariosService,
   ],
   exports: [USUARIO_REPOSITORY, UsuariosService],
