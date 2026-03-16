@@ -582,3 +582,4 @@ Tarefas paralelas:
 - [x] Task 7 - Verificacao final e quality gate
 - [x] Task 8 - Criacao de usuario com select de departamentos por tenant e departamento opcional
 - [x] Task 9 - Correcao do erro 500 na criacao de hardware com alinhamento de payload e mensagens de erro
+- [x] Task 10 - Emprestimo com selects FK de usuarios e hardwares via endpoints de options dedicados
