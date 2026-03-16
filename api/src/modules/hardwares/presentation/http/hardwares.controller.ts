@@ -27,6 +27,14 @@ import { ZodValidationPipe } from '../../../../shared/presentation/http/zod-vali
 import { Hardware } from '../../domain/entities/hardware.entity';
 import { SessionPhaseGuard } from '../../../auth/presentation/http/session-phase.guard';
 
+type HardwareOptionHttpResponse = {
+  id: string;
+  descricao: string;
+  marca: string;
+  modelo: string;
+  codigoPatrimonio: string;
+};
+
 type HardwareHttpResponse = {
   id: string;
   empresaId: string;
@@ -81,6 +89,18 @@ export class HardwaresController {
       total: result.total,
       totalPages: result.totalPages,
     };
+  }
+
+  @Get('options')
+  async listOptions(): Promise<HardwareOptionHttpResponse[]> {
+    const options = await this.hardwaresService.listOptions();
+    return options.map((option) => ({
+      id: option.id,
+      descricao: option.descricao,
+      marca: option.marca,
+      modelo: option.modelo,
+      codigoPatrimonio: option.codigoPatrimonio,
+    }));
   }
 
   @Get(':id')

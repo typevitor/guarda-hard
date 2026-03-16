@@ -41,6 +41,80 @@ class InMemoryHardwareRepository implements IHardwareRepository {
     return [...this.rows.values()].filter((row) => row.empresaId === this.currentTenant);
   }
 
+  async listPaginated(query: {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    funcionando?: boolean;
+    livre?: boolean;
+  }) {
+    const filtered = [...this.rows.values()]
+      .filter((row) => row.empresaId === this.currentTenant)
+      .filter((row) =>
+        query.search
+          ? row.descricao.toLowerCase().includes(query.search.toLowerCase())
+          : true,
+      )
+      .filter((row) =>
+        query.funcionando !== undefined
+          ? row.funcionando === query.funcionando
+          : true,
+      )
+      .filter((row) => (query.livre !== undefined ? row.livre === query.livre : true));
+
+    return {
+      items: filtered,
+      page: query.page,
+      pageSize: 10 as const,
+      total: filtered.length,
+      totalPages: Math.ceil(filtered.length / 10),
+    };
+  }
+
+  async listOptions(): Promise<
+    Array<{
+      id: string;
+      descricao: string;
+      marca: string;
+      modelo: string;
+      codigoPatrimonio: string;
+    }>
+  > {
+    return [...this.rows.values()]
+      .filter((row) => row.empresaId === this.currentTenant)
+      .filter((row) => row.livre)
+      .filter((row) => row.funcionando)
+      .sort((a, b) => {
+        const descricaoOrder = a.descricao
+          .toLowerCase()
+          .localeCompare(b.descricao.toLowerCase());
+        if (descricaoOrder !== 0) {
+          return descricaoOrder;
+        }
+
+        const marcaOrder = a.marca.toLowerCase().localeCompare(b.marca.toLowerCase());
+        if (marcaOrder !== 0) {
+          return marcaOrder;
+        }
+
+        const modeloOrder = a.modelo
+          .toLowerCase()
+          .localeCompare(b.modelo.toLowerCase());
+        if (modeloOrder !== 0) {
+          return modeloOrder;
+        }
+
+        return a.id.localeCompare(b.id);
+      })
+      .map((row) => ({
+        id: row.id,
+        descricao: row.descricao,
+        marca: row.marca,
+        modelo: row.modelo,
+        codigoPatrimonio: row.codigoPatrimonio,
+      }));
+  }
+
   async save(entity: Hardware): Promise<void> {
     this.rows.set(entity.id, entity);
   }
@@ -76,6 +150,39 @@ class InMemoryEmprestimoRepository implements IEmprestimoRepository {
 
   async findAll(): Promise<Emprestimo[]> {
     return [...this.rows.values()].filter((row) => row.empresaId === this.currentTenant);
+  }
+
+  async listPaginated(query: {
+    page: number;
+    pageSize: 10;
+    search?: string;
+    usuarioId?: string;
+    hardwareId?: string;
+    retiradaFrom?: string;
+    retiradaTo?: string;
+    devolucaoFrom?: string;
+    devolucaoTo?: string;
+    status?: 'open' | 'returned';
+  }) {
+    const filtered = [...this.rows.values()]
+      .filter((row) => row.empresaId === this.currentTenant)
+      .filter((row) => (query.usuarioId ? row.usuarioId === query.usuarioId : true))
+      .filter((row) => (query.hardwareId ? row.hardwareId === query.hardwareId : true))
+      .filter((row) =>
+        query.status === 'open'
+          ? row.dataDevolucao === null
+          : query.status === 'returned'
+            ? row.dataDevolucao !== null
+            : true,
+      );
+
+    return {
+      items: filtered,
+      page: query.page,
+      pageSize: 10 as const,
+      total: filtered.length,
+      totalPages: Math.ceil(filtered.length / 10),
+    };
   }
 
   async save(entity: Emprestimo): Promise<void> {

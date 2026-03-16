@@ -11,6 +11,7 @@ import { UpdateHardwareUseCase } from './application/use-cases/update-hardware.u
 import { DeleteHardwareUseCase } from './application/use-cases/delete-hardware.use-case';
 import { MarcarDefeitoUseCase } from './application/use-cases/marcar-defeito.use-case';
 import { ConsertarHardwareUseCase } from './application/use-cases/consertar-hardware.use-case';
+import { ListHardwaresOptionsUseCase } from './application/use-cases/list-hardwares-options.use-case';
 import { HardwaresService } from './application/services/hardwares.service';
 import { HardwaresController } from './presentation/http/hardwares.controller';
 import { TenantModule } from '../../tenant/tenant.module';
@@ -31,6 +32,7 @@ import { AuthModule } from '../auth/auth.module';
     CreateHardwareUseCase,
     ListHardwaresUseCase,
     ListHardwaresPaginadoUseCase,
+    ListHardwaresOptionsUseCase,
     GetHardwareByIdUseCase,
     UpdateHardwareUseCase,
     DeleteHardwareUseCase,

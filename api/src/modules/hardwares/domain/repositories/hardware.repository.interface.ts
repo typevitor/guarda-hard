@@ -17,10 +17,19 @@ export type PaginatedHardwares = {
   totalPages: number;
 };
 
+export type HardwareOption = {
+  id: string;
+  descricao: string;
+  marca: string;
+  modelo: string;
+  codigoPatrimonio: string;
+};
+
 export interface IHardwareRepository {
   findById(id: string): Promise<Hardware | null>;
   findAll(): Promise<Hardware[]>;
   listPaginated(query: HardwareListQuery): Promise<PaginatedHardwares>;
+  listOptions(): Promise<HardwareOption[]>;
   save(hardware: Hardware): Promise<void>;
   delete(id: string): Promise<void>;
 }

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
+  type HardwareOption,
   type HardwareListQuery,
   IHardwareRepository,
   type PaginatedHardwares,
@@ -78,6 +79,27 @@ export class TypeOrmHardwareRepository implements IHardwareRepository {
       total,
       totalPages: Math.ceil(total / pageSize),
     };
+  }
+
+  async listOptions(): Promise<HardwareOption[]> {
+    const empresaId = this.tenantContext.requireEmpresaId();
+    const rows = await this.ormRepo
+      .createQueryBuilder('hardware')
+      .select('hardware.id', 'id')
+      .addSelect('hardware.descricao', 'descricao')
+      .addSelect('hardware.marca', 'marca')
+      .addSelect('hardware.modelo', 'modelo')
+      .addSelect('hardware.codigo_patrimonio', 'codigoPatrimonio')
+      .where('hardware.empresa_id = :empresaId', { empresaId })
+      .andWhere('hardware.livre = :livre', { livre: true })
+      .andWhere('hardware.funcionando = :funcionando', { funcionando: true })
+      .orderBy('LOWER(hardware.descricao)', 'ASC')
+      .addOrderBy('LOWER(hardware.marca)', 'ASC')
+      .addOrderBy('LOWER(hardware.modelo)', 'ASC')
+      .addOrderBy('hardware.id', 'ASC')
+      .getRawMany<HardwareOption>();
+
+    return rows;
   }
 
   async save(hardware: Hardware): Promise<void> {
