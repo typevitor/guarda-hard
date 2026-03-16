@@ -12,6 +12,28 @@ vi.mock('next/navigation', () => ({
 import { EmprestimoPage } from './emprestimo-page';
 
 describe('EmprestimoPage listing flow', () => {
+  const usuarioOptions = [
+    { id: 'user-1', nome: 'Ana' },
+    { id: 'user-2', nome: 'Bruno' },
+  ];
+
+  const hardwareOptions = [
+    {
+      id: 'hw-1',
+      descricao: 'Notebook',
+      marca: 'Dell',
+      modelo: 'Latitude',
+      codigoPatrimonio: 'PAT-001',
+    },
+    {
+      id: 'hw-2',
+      descricao: 'Monitor',
+      marca: 'LG',
+      modelo: 'UltraWide',
+      codigoPatrimonio: 'PAT-002',
+    },
+  ];
+
   const baseList = {
     items: [
       {
@@ -50,7 +72,15 @@ describe('EmprestimoPage listing flow', () => {
   it("renders operation-specific open list and creates via modal with 'Novo emprestimo'", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 
-    render(<EmprestimoPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
+    render(
+      <EmprestimoPage
+        onSubmit={onSubmit}
+        list={baseList}
+        query={baseQuery}
+        usuarioOptions={usuarioOptions}
+        hardwareOptions={hardwareOptions}
+      />,
+    );
 
     expect(screen.getByRole('cell', { name: 'user-1' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Novo emprestimo' }));
@@ -67,28 +97,38 @@ describe('EmprestimoPage listing flow', () => {
   it('keeps modal open and preserves values on failure', async () => {
     const onSubmit = vi.fn().mockRejectedValue(new Error('network'));
 
-    render(<EmprestimoPage onSubmit={onSubmit} list={baseList} query={baseQuery} />);
+    render(
+      <EmprestimoPage
+        onSubmit={onSubmit}
+        list={baseList}
+        query={baseQuery}
+        usuarioOptions={usuarioOptions}
+        hardwareOptions={hardwareOptions}
+      />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'Novo emprestimo' }));
-    fireEvent.change(screen.getByLabelText('Usuario'), { target: { value: 'user-3' } });
-    fireEvent.change(screen.getByLabelText('Hardware'), { target: { value: 'hw-3' } });
+    fireEvent.change(screen.getByLabelText('Usuario'), { target: { value: 'user-1' } });
+    fireEvent.change(screen.getByLabelText('Hardware'), { target: { value: 'hw-1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByText('Nao foi possivel registrar emprestimo')).toBeTruthy();
     expect(screen.getByRole('dialog', { name: 'Novo emprestimo' })).toBeTruthy();
-    expect((screen.getByLabelText('Usuario') as HTMLInputElement).value).toBe('user-3');
+    expect((screen.getByLabelText('Usuario') as HTMLSelectElement).value).toBe('user-1');
   });
 
   it('resets page on filter and keeps filter on pagination', () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 
     render(
-      <EmprestimoPage
-        onSubmit={onSubmit}
-        list={baseList}
-        query={{ ...baseQuery, search: 'user' }}
-      />,
-    );
+        <EmprestimoPage
+          onSubmit={onSubmit}
+          list={baseList}
+          query={{ ...baseQuery, search: 'user' }}
+          usuarioOptions={usuarioOptions}
+          hardwareOptions={hardwareOptions}
+        />,
+      );
 
     fireEvent.click(screen.getByRole('button', { name: 'Todos' }));
     expect(pushMock).toHaveBeenLastCalledWith('/emprestimo?page=1&status=open&search=user');
@@ -111,5 +151,38 @@ describe('EmprestimoPage listing flow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Proxima' }));
     expect(pushMock).toHaveBeenCalledWith('/emprestimo?page=2&status=open&search=new');
+  });
+
+  it('disables submit in modal when options arrays are empty', () => {
+    render(
+      <EmprestimoPage
+        onSubmit={vi.fn().mockResolvedValue(undefined)}
+        list={baseList}
+        query={baseQuery}
+        usuarioOptions={[]}
+        hardwareOptions={[]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Novo emprestimo' }));
+
+    expect(screen.getByRole('button', { name: 'Salvar' }).hasAttribute('disabled')).toBe(true);
+  });
+
+  it('disables submit in modal when options errors exist', () => {
+    render(
+      <EmprestimoPage
+        onSubmit={vi.fn().mockResolvedValue(undefined)}
+        list={baseList}
+        query={baseQuery}
+        usuarioOptions={usuarioOptions}
+        hardwareOptions={hardwareOptions}
+        usuarioOptionsError="Nao foi possivel carregar usuarios"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Novo emprestimo' }));
+
+    expect(screen.getByRole('button', { name: 'Salvar' }).hasAttribute('disabled')).toBe(true);
   });
 });

@@ -7,6 +7,8 @@ import { FeedbackBanner } from '@/components/ui/feedback-banner';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { Modal } from '@/components/ui/modal';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import type { HardwareOption } from '@/features/hardwares/server/hardwares-options-api';
+import type { UsuarioOption } from '@/features/usuarios/server/usuarios-options-api';
 
 import { EmprestimoForm } from '../forms/emprestimo-form';
 import type { EmprestimosListQuery } from '../schemas/emprestimos-list-query-schema';
@@ -27,9 +29,21 @@ type EmprestimoPageProps = {
   onSubmit: (values: EmprestimoPayload) => Promise<void>;
   list: EmprestimoListResponse;
   query: EmprestimosListQuery;
+  usuarioOptions: UsuarioOption[];
+  hardwareOptions: HardwareOption[];
+  usuarioOptionsError?: string | null;
+  hardwareOptionsError?: string | null;
 };
 
-export function EmprestimoPage({ onSubmit, list, query }: EmprestimoPageProps) {
+export function EmprestimoPage({
+  onSubmit,
+  list,
+  query,
+  usuarioOptions,
+  hardwareOptions,
+  usuarioOptionsError = null,
+  hardwareOptionsError = null,
+}: EmprestimoPageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,6 +54,11 @@ export function EmprestimoPage({ onSubmit, list, query }: EmprestimoPageProps) {
   } | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
   const [activePresetId, setActivePresetId] = useState<EmprestimoPresetId>('all');
+  const disableSubmit =
+    Boolean(usuarioOptionsError && usuarioOptionsError.trim().length > 0) ||
+    Boolean(hardwareOptionsError && hardwareOptionsError.trim().length > 0) ||
+    usuarioOptions.length === 0 ||
+    hardwareOptions.length === 0;
 
   const pushQuery = (nextQuery: EmprestimosListQuery): void => {
     const params = new URLSearchParams();
@@ -149,6 +168,11 @@ export function EmprestimoPage({ onSubmit, list, query }: EmprestimoPageProps) {
           onCancel={() => {
             setIsModalOpen(false);
           }}
+          usuarioOptions={usuarioOptions}
+          hardwareOptions={hardwareOptions}
+          usuarioOptionsError={usuarioOptionsError}
+          hardwareOptionsError={hardwareOptionsError}
+          disableSubmit={disableSubmit}
         />
       </Modal>
     </section>
