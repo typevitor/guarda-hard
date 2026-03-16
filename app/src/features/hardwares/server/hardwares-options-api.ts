@@ -8,7 +8,7 @@ const hardwareOptionSchema = z.object({
   marca: z.string(),
   modelo: z.string(),
   codigoPatrimonio: z.string(),
-});
+}).strict();
 
 const hardwareOptionsSchema = z.array(hardwareOptionSchema);
 

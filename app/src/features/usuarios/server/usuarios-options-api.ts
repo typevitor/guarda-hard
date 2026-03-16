@@ -5,7 +5,7 @@ import { apiClient } from "@/lib/api/client";
 const usuarioOptionSchema = z.object({
   id: z.string(),
   nome: z.string(),
-});
+}).strict();
 
 const usuarioOptionsSchema = z.array(usuarioOptionSchema);
 

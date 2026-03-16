@@ -50,4 +50,14 @@ describe("listUsuarioOptionsServer", () => {
       name: "ZodError",
     });
   });
+
+  it("throws zod parse error when backend payload has unexpected keys", async () => {
+    vi.mocked(apiClient).mockResolvedValueOnce([
+      { id: "user-1", nome: "Maria", departamento: "Financeiro" },
+    ]);
+
+    await expect(listUsuarioOptionsServer()).rejects.toMatchObject({
+      name: "ZodError",
+    });
+  });
 });

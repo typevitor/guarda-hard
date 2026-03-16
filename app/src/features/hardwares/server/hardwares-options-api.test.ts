@@ -84,4 +84,21 @@ describe("listHardwareOptionsServer", () => {
       name: "ZodError",
     });
   });
+
+  it("throws zod parse error when backend payload has unexpected keys", async () => {
+    vi.mocked(apiClient).mockResolvedValueOnce([
+      {
+        id: "hw-1",
+        descricao: "Notebook",
+        marca: "Dell",
+        modelo: "Latitude 5420",
+        codigoPatrimonio: "PAT-001",
+        status: "ativo",
+      },
+    ]);
+
+    await expect(listHardwareOptionsServer()).rejects.toMatchObject({
+      name: "ZodError",
+    });
+  });
 });
